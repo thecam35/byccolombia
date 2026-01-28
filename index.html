@@ -1703,7 +1703,7 @@
                 opacity: 0;
             }
             to {
-                transform: translateX(0);
+                transform: translateY(0);
                 opacity: 1;
             }
         }
@@ -2398,20 +2398,7 @@
                 </div>
             </div>
             
-            <!-- Información de pago del usuario agregada -->
-            <div class="payment-info-details" id="user-payment-info" style="display: none;">
-                <h3 style="color: #00b4d8; font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-credit-card"></i> Información de pago del vendedor
-                </h3>
-                <div class="payment-method-item">
-                    <span style="color: #90e0ef;">Nequi:</span>
-                    <span style="color: white; font-weight: 600;" id="seller-nequi-info">No disponible</span>
-                </div>
-                <div class="payment-method-item">
-                    <span style="color: #90e0ef;">Binance:</span>
-                    <span style="color: white; font-weight: 600;" id="seller-binance-info">No disponible</span>
-                </div>
-            </div>
+            <!-- INFORMACIÓN DE PAGO DEL VENDEDOR ELIMINADA DE LA VENTANA DE COMPRA -->
             
             <div>
                 <p style="text-align: center; color: #90e0ef; margin-bottom: 10px;">
@@ -2588,7 +2575,7 @@
                     
                     <div class="form-group">
                         <label class="form-label"><i class="fas fa-align-left"></i> Descripción</label>
-                        <textarea class="form-textarea" id="post-description" placeholder="Descripción detallada..." rows="4" required></textarea>
+                        <textarea class="form-textarea" id="post-description" placeholder="Descripción detallada... Si es un Bin, Poner el bin y sus datos completos, el sistema censurara los digitos solo seran visible cuando el administrador apruebe el pago. en tu historial se mostrara cuantas veces te han comprado el producto, Al igual con las cc, el cliente tendra 5 horas desde el momento de la compra para cmoprobar el producto, si hay error, el cliente se contactara con soporte" rows="4" required></textarea>
                     </div>
                     
                     <div class="form-group">
@@ -2797,6 +2784,7 @@
         let salesHistory = [];
         let activeVerifications = [];
         let verificationTimers = {};
+        let fromVerificationButton = false;
         
         let registerCaptcha = "";
         let loginCaptcha = "";
@@ -3241,6 +3229,13 @@
                 const payment = purchaseHistory.find(p => p.postId === currentPostId && p.status === 'approved');
                 if (!payment) return;
                 
+                // Detener el timer inmediatamente
+                const timerId = `timer_${payment.id}`;
+                if (verificationTimers[timerId]) {
+                    clearInterval(verificationTimers[timerId]);
+                    delete verificationTimers[timerId];
+                }
+                
                 await updatePaymentVerificationStatus(payment.id, 'verified');
                 
                 showNotification('¡Gracias por confirmar! El producto ha sido marcado como verificado.', 'success');
@@ -3469,7 +3464,7 @@
                             <i class="fas fa-eye"></i> Ver Contenido
                         </button>
                         ${payment.status === 'approved' && payment.verificationStatus !== 'verified' && payment.timeLeft > 0 ? `
-                            <button class="history-btn verify" onclick="openPostModal('${payment.postId}')">
+                            <button class="history-btn verify" onclick="openPostModalFromVerification('${payment.postId}')">
                                 <i class="fas fa-check"></i> Verificar Producto
                             </button>
                         ` : ''}
@@ -3486,7 +3481,7 @@
             } else if (type === 'verification') {
                 actionsHTML = `
                     <div class="history-actions">
-                        <button class="history-btn view" onclick="openPostModal('${payment.postId}')">
+                        <button class="history-btn view" onclick="openPostModalFromVerification('${payment.postId}')">
                             <i class="fas fa-eye"></i> Verificar Ahora
                         </button>
                     </div>
@@ -3523,6 +3518,12 @@
             `;
             
             return element;
+        }
+        
+        // NUEVA FUNCIÓN: Abrir modal desde botón de verificación
+        function openPostModalFromVerification(postId) {
+            fromVerificationButton = true;
+            openPostModal(postId);
         }
         
         function switchHistoryTab(tabName) {
@@ -4019,27 +4020,20 @@
             updateMobileUserInfo();
         }
         
-        // FUNCIÓN CORREGIDA - SOLO muestra contenido premium si el pago fue APROBADO
         function hasAccessToPost(postId) {
             if (!currentUser) return false;
             
             const post = posts.find(p => p.id === postId);
             if (!post) return false;
             
-            // Si NO es contenido premium, cualquier usuario logueado puede verlo
             if (post.category !== 'premium') return true;
             
-            // IMPORTANTE: NO dar acceso a administradores automáticamente
-            // Solo si han comprado el contenido específico
-            
-            // Verificar si el usuario compró este post específico y el pago fue APROBADO
             const purchase = purchaseHistory.find(p => 
                 p.postId === postId && 
                 p.userId === currentUser.uid && 
-                p.status === 'approved'  // SOLO SI EL ESTADO ES 'approved'
+                p.status === 'approved'
             );
             
-            // SOLO retorna true si compró y fue APROBADO
             return !!purchase;
         }
         
@@ -4765,13 +4759,12 @@
                 return;
             }
             
-            // Validación estricta para contenido premium
             const post = posts.find(p => p.id === postId);
             if (post && post.category === 'premium') {
                 if (!hasAccessToPost(postId)) {
                     showPremiumRestriction();
                     showPaymentInfo(postId);
-                    return; // IMPORTANTE: Salir de la función si no tiene acceso
+                    return;
                 }
             }
             
@@ -4902,6 +4895,26 @@
                                 timerDisplay.classList.add('timer-expired');
                             }
                         }
+                        
+                        // SI SE ABRIÓ DESDE EL BOTÓN "Verificar Ahora", DETENER EL TIMER AUTOMÁTICAMENTE
+                        if (fromVerificationButton) {
+                            const timerId = `timer_${payment.id}`;
+                            if (verificationTimers[timerId]) {
+                                clearInterval(verificationTimers[timerId]);
+                                delete verificationTimers[timerId];
+                            }
+                            
+                            // Marcar como verificado automáticamente
+                            await updatePaymentVerificationStatus(payment.id, 'verified');
+                            
+                            // Ocultar la sección de verificación
+                            purchaseHistorySection.style.display = 'none';
+                            
+                            showNotification('¡Producto verificado automáticamente! El timer ha sido detenido.', 'success');
+                            
+                            // Resetear la bandera
+                            fromVerificationButton = false;
+                        }
                     } else {
                         purchaseHistorySection.style.display = 'none';
                     }
@@ -4924,6 +4937,9 @@
             } catch (error) {
                 console.error("Error abriendo publicación:", error);
                 showNotification('Error al cargar la publicación', 'error');
+            } finally {
+                // Resetear la bandera
+                fromVerificationButton = false;
             }
         }
         
@@ -5065,6 +5081,7 @@
                 postModal.classList.remove('active');
                 document.body.style.overflow = 'auto';
                 currentPostId = null;
+                fromVerificationButton = false;
             }
         }
         
@@ -5327,22 +5344,7 @@
             document.getElementById('payment-price').textContent = post.price ? `$${post.price} USD` : '$0 USD';
             document.getElementById('binance-address').textContent = BINANCE_ADDRESS;
             
-            // Obtener información de pago del vendedor
-            try {
-                const authorDoc = await firebase.firestore().collection('users').doc(post.authorId).get();
-                if (authorDoc.exists) {
-                    const authorData = authorDoc.data();
-                    const userPaymentInfo = document.getElementById('user-payment-info');
-                    const sellerNequiInfo = document.getElementById('seller-nequi-info');
-                    const sellerBinanceInfo = document.getElementById('seller-binance-info');
-                    
-                    if (userPaymentInfo) userPaymentInfo.style.display = 'block';
-                    if (sellerNequiInfo) sellerNequiInfo.textContent = authorData.nequi || 'No disponible';
-                    if (sellerBinanceInfo) sellerBinanceInfo.textContent = authorData.binance || 'No disponible';
-                }
-            } catch (error) {
-                console.error("Error obteniendo información del vendedor:", error);
-            }
+            // INFORMACIÓN DE PAGO DEL VENDEDOR YA NO SE MUESTRA EN LA VENTANA DE COMPRA
             
             clearReceipt();
             
@@ -5382,3 +5384,4 @@
     </script>
 </body>
 </html>
+
