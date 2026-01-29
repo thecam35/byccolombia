@@ -2155,6 +2155,28 @@
             margin-bottom: 0;
             padding-bottom: 0;
         }
+        
+        .censored-text {
+            background-color: #333;
+            color: #333;
+            position: relative;
+            user-select: none;
+        }
+        
+        .censored-text::before {
+            content: '***';
+            color: #ff6b6b;
+            background-color: #333;
+            padding: 0 3px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        
+        .premium-content-censored {
+            filter: blur(8px);
+            user-select: none;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -2398,8 +2420,6 @@
                 </div>
             </div>
             
-            <!-- INFORMACIÓN DE PAGO DEL VENDEDOR ELIMINADA DE LA VENTANA DE COMPRA -->
-            
             <div>
                 <p style="text-align: center; color: #90e0ef; margin-bottom: 10px;">
                     Envía el pago a la siguiente dirección de Binance:
@@ -2575,7 +2595,7 @@
                     
                     <div class="form-group">
                         <label class="form-label"><i class="fas fa-align-left"></i> Descripción</label>
-                        <textarea class="form-textarea" id="post-description" placeholder="Descripción detallada... Si es un Bin, Poner el bin y sus datos completos, el sistema censurara los digitos solo seran visible cuando el administrador apruebe el pago. en tu historial se mostrara cuantas veces te han comprado el producto, Al igual con las cc, el cliente tendra 5 horas desde el momento de la compra para cmoprobar el producto, si hay error, el cliente se contactara con soporte" rows="4" required></textarea>
+                        <textarea class="form-textarea" id="post-description" placeholder="Descripción detallada... Si es un Bin, poner el bin y sus datos completos. El contenido estará censurado hasta que el usuario haga la compra y el administrador haya aprobado el pago. En tu historial se mostrará cuántas veces te han comprado el producto. Al igual con las CC, el cliente tendrá 5 horas desde el momento de la compra para comprobar el producto, si hay error, el cliente se contactará con soporte." rows="4" required></textarea>
                     </div>
                     
                     <div class="form-group">
@@ -2752,7 +2772,9 @@
         <div class="footer-content">
             <p>© 2023 Foro Privado - Compartiendo conocimiento</p>
             <div class="footer-links">
-                <a href="#" class="footer-link"><i class="fas fa-info-circle"></i> Acerca</a>
+                <a href="https://www.facebook.com/groups/cardersdelmundo" class="footer-link" target="_blank">
+                    <i class="fab fa-facebook"></i> Redirección de Facebook
+                </a>
                 <a href="#" class="footer-link"><i class="fas fa-book"></i> Tutoriales</a>
                 <a href="#" class="footer-link"><i class="fas fa-question-circle"></i> FAQ</a>
                 <a href="#" class="footer-link"><i class="fas fa-cog"></i> Configuración</a>
@@ -4402,6 +4424,14 @@
             });
         }
         
+        function censorDescription(description, postCategory, hasAccess) {
+            if (postCategory === 'premium' && !hasAccess) {
+                // Reemplazar todo el texto con ***
+                return '***';
+            }
+            return description;
+        }
+        
         function createPostElement(post) {
             const postElement = document.createElement('div');
             postElement.className = 'post-card';
@@ -4429,8 +4459,19 @@
             
             const userLiked = post.likedBy && currentUser ? post.likedBy.includes(currentUser.uid) : false;
             
+            const hasPurchasedThisPost = currentUser ? 
+                purchaseHistory.some(p => 
+                    p.postId === post.id && 
+                    p.userId === currentUser.uid && 
+                    p.status === 'approved'
+                ) : false;
+            
+            const canViewPremium = hasAccessToPost(post.id);
+            
+            const censoredDescription = censorDescription(post.description, post.category, canViewPremium);
+            
             let commentsPreviewHTML = '';
-            if (post.comments && post.comments.length > 0) {
+            if (canViewPremium && post.comments && post.comments.length > 0) {
                 const lastComments = post.comments.slice(-2);
                 commentsPreviewHTML = `
                     <div class="comments-preview">
@@ -4455,7 +4496,7 @@
                         }
                     </div>
                 `;
-            } else {
+            } else if (canViewPremium) {
                 commentsPreviewHTML = `
                     <div class="comments-preview">
                         <button class="view-comments-btn" onclick="openPostModal('${post.id}')">
@@ -4465,15 +4506,6 @@
                     </div>
                 `;
             }
-            
-            const hasPurchasedThisPost = currentUser ? 
-                purchaseHistory.some(p => 
-                    p.postId === post.id && 
-                    p.userId === currentUser.uid && 
-                    p.status === 'approved'
-                ) : false;
-            
-            const canViewPremium = hasAccessToPost(post.id);
             
             const premiumRestriction = !canViewPremium && post.category === 'premium' ? `
                 <div class="premium-restricted">
@@ -4519,7 +4551,7 @@
                     
                     <h3 class="post-title">${post.title || 'Sin título'}</h3>
                     ${priceInfo}
-                    <p class="post-description">${(post.description || '').substring(0, 100)}${(post.description || '').length > 100 ? '...' : ''}</p>
+                    <p class="post-description">${censoredDescription.substring(0, 100)}${censoredDescription.length > 100 ? '...' : ''}</p>
                     
                     <div class="post-stats">
                         <div class="post-actions">
@@ -4818,7 +4850,14 @@
                 const modalTitle = document.getElementById('modal-title');
                 const modalDescription = document.getElementById('modal-description');
                 if (modalTitle) modalTitle.textContent = post.title || 'Sin título';
-                if (modalDescription) modalDescription.textContent = post.description || '';
+                
+                // Aplicar censura solo si es premium y no tiene acceso
+                let descriptionToShow = post.description || '';
+                if (post.category === 'premium' && !hasAccessToPost(postId)) {
+                    descriptionToShow = '***';
+                }
+                
+                if (modalDescription) modalDescription.textContent = descriptionToShow;
                 
                 const modalCode = document.getElementById('modal-code');
                 if (modalCode) {
@@ -5344,8 +5383,6 @@
             document.getElementById('payment-price').textContent = post.price ? `$${post.price} USD` : '$0 USD';
             document.getElementById('binance-address').textContent = BINANCE_ADDRESS;
             
-            // INFORMACIÓN DE PAGO DEL VENDEDOR YA NO SE MUESTRA EN LA VENTANA DE COMPRA
-            
             clearReceipt();
             
             const paymentModal = document.getElementById('payment-modal');
@@ -5384,4 +5421,5 @@
     </script>
 </body>
 </html>
+
 
