@@ -824,6 +824,10 @@
             top: 100px;
         }
         
+        .categories {
+            margin-top: 0;
+        }
+        
         .categories h3 {
             font-size: 18px;
             margin-bottom: 20px;
@@ -2212,6 +2216,111 @@
             user-select: none;
             pointer-events: none;
         }
+        
+        /* Nuevos estilos para botones de editar y eliminar */
+        .post-owner-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 180, 216, 0.2);
+        }
+        
+        .owner-action-btn {
+            padding: 6px 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .edit-btn {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+            border: 1px solid #3498db;
+        }
+        
+        .edit-btn:hover {
+            background: rgba(52, 152, 219, 0.2);
+        }
+        
+        .delete-btn {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+        
+        .delete-btn:hover {
+            background: rgba(231, 76, 60, 0.2);
+        }
+        
+        .modal-owner-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 180, 216, 0.2);
+        }
+        
+        /* Estilos para el modal de confirmación de eliminación */
+        .delete-confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 4000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .delete-confirmation-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .delete-confirmation-container {
+            background: #1a1f2e;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            padding: 30px;
+            position: relative;
+            border: 2px solid #e74c3c;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .delete-confirmation-icon {
+            text-align: center;
+            font-size: 50px;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        
+        .delete-confirmation-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
     </style>
 </head>
 <body>
@@ -2277,6 +2386,29 @@
             <div class="stat-item">
                 <span>Miembros:</span>
                 <span class="stat-value" id="mobile-total-members">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmación de Eliminación -->
+    <div class="delete-confirmation-modal" id="delete-confirmation-modal">
+        <div class="delete-confirmation-container">
+            <button class="close-auth" onclick="closeDeleteConfirmationModal()">×</button>
+            <div class="delete-confirmation-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h2 style="color: #e74c3c; margin-bottom: 10px;">¿Eliminar Publicación?</h2>
+                <p style="color: #90e0ef;">Esta acción no se puede deshacer. Se eliminará la publicación y todos sus comentarios.</p>
+                <p style="color: #90e0ef; font-size: 14px; margin-top: 10px;">Título: <span id="delete-post-title" style="color: #ff6b6b; font-weight: bold;"></span></p>
+            </div>
+            <div class="delete-confirmation-buttons">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteConfirmationModal()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">
+                    <i class="fas fa-trash"></i> Eliminar Definitivamente
+                </button>
             </div>
         </div>
     </div>
@@ -2704,7 +2836,15 @@
                 <p id="modal-description" class="modal-description"></p>
                 <div id="modal-code" class="modal-code" style="display: none;"></div>
                 
-                
+                <!-- Botones de editar y eliminar (solo para el propietario) -->
+                <div class="modal-owner-actions" id="modal-owner-actions" style="display: none;">
+                    <button class="owner-action-btn edit-btn" onclick="editPostModal()">
+                        <i class="fas fa-edit"></i> Editar Publicación
+                    </button>
+                    <button class="owner-action-btn delete-btn" onclick="showDeleteConfirmationModal()">
+                        <i class="fas fa-trash"></i> Eliminar Publicación
+                    </button>
+                </div>
                 
                 <div class="modal-meta">
                     <div class="post-actions">
@@ -2829,6 +2969,8 @@
         let activeVerifications = [];
         let verificationTimers = {};
         let fromVerificationButton = false;
+        let isEditingPost = false;
+        let postToDelete = null;
         
         let registerCaptcha = "";
         let loginCaptcha = "";
@@ -2874,6 +3016,9 @@
                     loginUser();
                 });
                 
+                // Configurar botón de confirmación de eliminación
+                document.getElementById('confirm-delete-btn').addEventListener('click', deletePost);
+                
                 firebase.auth().onAuthStateChanged(async (user) => {
                     if (user) {
                         await loadUserData(user);
@@ -2895,7 +3040,11 @@
                 
                 document.getElementById('post-description').addEventListener('keydown', function(e) {
                     if (e.ctrlKey && e.key === 'Enter') {
-                        createPost();
+                        if (isEditingPost) {
+                            updatePost();
+                        } else {
+                            createPost();
+                        }
                     }
                 });
                 
@@ -2913,6 +3062,7 @@
                         closeConfirmationModal();
                         closeHistoryModal();
                         closeMobileMenu();
+                        closeDeleteConfirmationModal();
                     }
                 });
                 
@@ -3217,7 +3367,11 @@
             }
             
             if (currentPostId) {
-                const postPayment = purchaseHistory.find(p => p.postId === currentPostId && p.status === 'approved');
+                const postPayment = purchaseHistory.find(p => 
+                    p.postId === currentPostId && 
+                    p.userId === currentUser.uid && 
+                    p.status === 'approved'
+                );
                 if (postPayment && postPayment.id === paymentId) {
                     const modalTimer = document.getElementById('timer-display');
                     if (modalTimer) {
@@ -4096,6 +4250,7 @@
             if (form.classList.contains('expanded')) {
                 form.classList.remove('expanded');
                 toggleBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Crear Nueva Publicación';
+                resetFormToCreate();
             } else {
                 form.classList.add('expanded');
                 toggleBtn.innerHTML = '<i class="fas fa-minus-circle"></i> Ocultar Formulario';
@@ -4107,6 +4262,24 @@
             }
         }
         
+        function resetFormToCreate() {
+            isEditingPost = false;
+            currentPostId = null;
+            
+            const formTitle = document.querySelector('#create-post-form h3');
+            if (formTitle) {
+                formTitle.innerHTML = '<i class="fas fa-plus"></i> Nueva Publicación';
+            }
+            
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publicar';
+                submitBtn.onclick = function() { createPost(); };
+            }
+            
+            clearForm();
+        }
+        
         function togglePriceField() {
             const category = document.getElementById('post-category').value;
             const priceFieldGroup = document.getElementById('price-field-group');
@@ -4116,13 +4289,12 @@
                 priceFieldGroup.style.display = 'flex';
                 if (priceInput) {
                     priceInput.required = true;
-                    priceInput.value = '';
+                    if (!priceInput.value) priceInput.value = '';
                 }
             } else {
                 priceFieldGroup.style.display = 'none';
                 if (priceInput) {
                     priceInput.required = false;
-                    priceInput.value = '';
                 }
             }
         }
@@ -4146,7 +4318,11 @@
                 submitBtn.style.opacity = '1';
                 submitBtn.style.display = 'flex';
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando imagen...';
+                if (isEditingPost) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando imagen...';
+                } else {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando imagen...';
+                }
             }
             
             const reader = new FileReader();
@@ -4202,12 +4378,20 @@
                     
                     const uploadText = document.querySelector('#photo-upload-area p');
                     if (uploadText) {
-                        uploadText.textContent = 'Imagen lista para subir';
+                        if (isEditingPost) {
+                            uploadText.textContent = 'Imagen lista para actualizar';
+                        } else {
+                            uploadText.textContent = 'Imagen lista para subir';
+                        }
                     }
                     
                     if (submitBtn) {
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publicar';
+                        if (isEditingPost) {
+                            submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar';
+                        } else {
+                            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publicar';
+                        }
                         submitBtn.style.visibility = 'visible';
                         submitBtn.style.opacity = '1';
                         submitBtn.style.display = 'flex';
@@ -4219,7 +4403,11 @@
                     showNotification('Error al cargar la imagen', 'error');
                     if (submitBtn) {
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publicar';
+                        if (isEditingPost) {
+                            submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar';
+                        } else {
+                            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publicar';
+                        }
                         submitBtn.style.visibility = 'visible';
                         submitBtn.style.opacity = '1';
                         submitBtn.style.display = 'flex';
@@ -4233,7 +4421,11 @@
                 showNotification('Error al leer el archivo', 'error');
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publicar';
+                    if (isEditingPost) {
+                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar';
+                    } else {
+                        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publicar';
+                    }
                     submitBtn.style.visibility = 'visible';
                     submitBtn.style.opacity = '1';
                     submitBtn.style.display = 'flex';
@@ -4361,6 +4553,284 @@
                     submitBtn.offsetHeight;
                 }
             }
+        }
+        
+        // NUEVA FUNCIÓN: Cargar datos para editar
+        function loadPostForEdit(postId) {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+            
+            if (post.authorId !== currentUser.uid) {
+                showNotification('Solo puedes editar tus propias publicaciones', 'error');
+                return;
+            }
+            
+            isEditingPost = true;
+            currentPostId = postId;
+            
+            // Expandir el formulario si no está expandido
+            const form = document.getElementById('create-post-form');
+            const toggleBtn = document.querySelector('.create-post-toggle');
+            
+            if (!form.classList.contains('expanded')) {
+                form.classList.add('expanded');
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '<i class="fas fa-minus-circle"></i> Ocultar Formulario';
+                }
+            }
+            
+            // Cambiar título del formulario
+            const formTitle = document.querySelector('#create-post-form h3');
+            if (formTitle) {
+                formTitle.innerHTML = '<i class="fas fa-edit"></i> Editar Publicación';
+            }
+            
+            // Llenar los campos con los datos de la publicación
+            document.getElementById('post-title').value = post.title || '';
+            document.getElementById('post-description').value = post.description || '';
+            document.getElementById('post-category').value = post.category || 'metodos';
+            
+            // Manejar campo de precio
+            if (post.category === 'premium' && post.price) {
+                document.getElementById('post-price').value = post.price;
+                document.getElementById('price-field-group').style.display = 'flex';
+                document.getElementById('post-price').required = true;
+            } else {
+                document.getElementById('post-price').value = '';
+                document.getElementById('price-field-group').style.display = 'none';
+                document.getElementById('post-price').required = false;
+            }
+            
+            // Manejar imagen
+            if (post.imageBase64) {
+                selectedImageBase64 = post.imageBase64;
+                const preview = document.getElementById('photo-preview');
+                if (preview) {
+                    preview.src = post.imageBase64;
+                    preview.style.display = 'block';
+                }
+                
+                const uploadText = document.querySelector('#photo-upload-area p');
+                if (uploadText) {
+                    uploadText.textContent = 'Imagen actual de la publicación';
+                }
+            } else {
+                selectedImageBase64 = null;
+                const preview = document.getElementById('photo-preview');
+                if (preview) {
+                    preview.style.display = 'none';
+                    preview.src = '';
+                }
+                
+                const uploadText = document.querySelector('#photo-upload-area p');
+                if (uploadText) {
+                    uploadText.textContent = 'Haz clic para cambiar la imagen';
+                }
+            }
+            
+            // Cambiar botón de submit
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar';
+                submitBtn.onclick = function() { updatePost(); };
+            }
+            
+            // Mostrar mensaje de advertencia
+            const warningElement = document.getElementById('size-warning');
+            if (warningElement) {
+                warningElement.style.display = 'none';
+            }
+            
+            // Desplazar hacia el formulario
+            setTimeout(() => {
+                const titleInput = document.getElementById('post-title');
+                if (titleInput) titleInput.focus();
+                window.scrollTo({ top: 200, behavior: 'smooth' });
+            }, 300);
+        }
+        
+        // NUEVA FUNCIÓN: Actualizar publicación
+        async function updatePost() {
+            if (!currentUser || !currentPostId) {
+                showNotification('Error al identificar la publicación', 'error');
+                return;
+            }
+            
+            const post = posts.find(p => p.id === currentPostId);
+            if (!post) {
+                showNotification('La publicación no existe', 'error');
+                return;
+            }
+            
+            if (post.authorId !== currentUser.uid) {
+                showNotification('Solo puedes editar tus propias publicaciones', 'error');
+                return;
+            }
+            
+            const title = document.getElementById('post-title')?.value.trim();
+            const description = document.getElementById('post-description')?.value.trim();
+            const category = document.getElementById('post-category')?.value;
+            const price = document.getElementById('post-price')?.value;
+            
+            if (!title || !description) {
+                showNotification('Completa el título y descripción', 'error');
+                return;
+            }
+            
+            if (category === 'premium') {
+                if (!price || parseFloat(price) <= 0) {
+                    showNotification('Ingresa un precio válido para la publicación premium', 'error');
+                    return;
+                }
+            }
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const originalText = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.style.visibility = 'visible';
+                submitBtn.style.opacity = '1';
+                submitBtn.style.display = 'flex';
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+                submitBtn.disabled = true;
+            }
+            
+            try {
+                if (selectedImageBase64 && selectedImageBase64.length > 5 * 1024 * 1024) {
+                    showNotification('La imagen es demasiado grande después de compresión (máximo 5MB). Intenta con una imagen más pequeña.', 'warning');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                        submitBtn.style.visibility = 'visible';
+                        submitBtn.style.opacity = '1';
+                        submitBtn.style.display = 'flex';
+                    }
+                    return;
+                }
+                
+                const updateData = {
+                    title: title,
+                    description: description,
+                    imageBase64: selectedImageBase64 || post.imageBase64,
+                    category: category,
+                    price: category === 'premium' ? parseFloat(price) : null,
+                    isPremium: category === 'premium',
+                    updatedAt: new Date().toISOString()
+                };
+                
+                await firebase.firestore().collection('posts').doc(currentPostId).update(updateData);
+                
+                clearForm();
+                toggleCreatePost();
+                
+                await loadPosts();
+                
+                showNotification('¡Publicación actualizada exitosamente!', 'success');
+                
+                // Cerrar el modal si estaba abierto
+                if (document.getElementById('post-modal').classList.contains('active')) {
+                    closeModal();
+                }
+                
+            } catch (error) {
+                console.error("Error actualizando publicación:", error);
+                showNotification('Error al actualizar la publicación', 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    submitBtn.style.visibility = 'visible';
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.display = 'flex';
+                    submitBtn.offsetHeight;
+                }
+            }
+        }
+        
+        // NUEVA FUNCIÓN: Mostrar modal de confirmación de eliminación
+        function showDeleteConfirmationModal() {
+            if (!currentPostId) return;
+            
+            const post = posts.find(p => p.id === currentPostId);
+            if (!post) return;
+            
+            if (post.authorId !== currentUser.uid) {
+                showNotification('Solo puedes eliminar tus propias publicaciones', 'error');
+                return;
+            }
+            
+            postToDelete = post;
+            
+            document.getElementById('delete-post-title').textContent = post.title;
+            
+            const modal = document.getElementById('delete-confirmation-modal');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        // NUEVA FUNCIÓN: Cerrar modal de confirmación de eliminación
+        function closeDeleteConfirmationModal() {
+            const modal = document.getElementById('delete-confirmation-modal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+            postToDelete = null;
+        }
+        
+        // NUEVA FUNCIÓN: Eliminar publicación
+        async function deletePost() {
+            if (!postToDelete || !currentUser) return;
+            
+            try {
+                // Verificar que el usuario es el propietario
+                if (postToDelete.authorId !== currentUser.uid) {
+                    showNotification('Solo puedes eliminar tus propias publicaciones', 'error');
+                    closeDeleteConfirmationModal();
+                    return;
+                }
+                
+                // Deshabilitar botón
+                const deleteBtn = document.getElementById('confirm-delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.disabled = true;
+                    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+                }
+                
+                // Eliminar de Firebase
+                await firebase.firestore().collection('posts').doc(postToDelete.id).delete();
+                
+                // Cerrar modales
+                closeDeleteConfirmationModal();
+                closeModal();
+                
+                // Recargar publicaciones
+                await loadPosts();
+                
+                showNotification('¡Publicación eliminada exitosamente!', 'success');
+                
+            } catch (error) {
+                console.error("Error eliminando publicación:", error);
+                showNotification('Error al eliminar la publicación', 'error');
+                
+                // Restablecer botón
+                const deleteBtn = document.getElementById('confirm-delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Eliminar Definitivamente';
+                }
+            }
+        }
+        
+        // NUEVA FUNCIÓN: Editar desde el modal
+        function editPostModal() {
+            if (!currentPostId) return;
+            
+            closeModal();
+            setTimeout(() => {
+                loadPostForEdit(currentPostId);
+            }, 300);
         }
         
         function filterByCategory(category) {
@@ -4529,6 +4999,21 @@
                 `;
             }
             
+            // Botones de editar y eliminar (solo para el propietario)
+            let ownerActionsHTML = '';
+            if (currentUser && post.authorId === currentUser.uid) {
+                ownerActionsHTML = `
+                    <div class="post-owner-actions">
+                        <button class="owner-action-btn edit-btn" onclick="loadPostForEdit('${post.id}')">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="owner-action-btn delete-btn" onclick="showDeleteConfirmationForPost('${post.id}')">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </div>
+                `;
+            }
+            
             const premiumRestriction = !canViewPremium && post.category === 'premium' ? `
                 <div class="premium-restricted">
                     <div class="premium-restricted-icon">
@@ -4575,6 +5060,8 @@
                     ${priceInfo}
                     <p class="post-description">${censoredDescription.substring(0, 100)}${censoredDescription.length > 100 ? '...' : ''}</p>
                     
+                    ${ownerActionsHTML}
+                    
                     <div class="post-stats">
                         <div class="post-actions">
                             <div class="post-action ${userLiked ? 'active' : ''}" onclick="${canViewPremium ? `likePost('${post.id}')` : 'showPremiumRestriction()'}">
@@ -4601,6 +5088,27 @@
             `;
             
             return postElement;
+        }
+        
+        // NUEVA FUNCIÓN: Mostrar confirmación de eliminación desde la tarjeta
+        function showDeleteConfirmationForPost(postId) {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+            
+            if (post.authorId !== currentUser.uid) {
+                showNotification('Solo puedes eliminar tus propias publicaciones', 'error');
+                return;
+            }
+            
+            postToDelete = post;
+            
+            document.getElementById('delete-post-title').textContent = post.title;
+            
+            const modal = document.getElementById('delete-confirmation-modal');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
         }
         
         function showAuthError(element, message) {
@@ -4718,6 +5226,8 @@
             }
             
             selectedImageBase64 = null;
+            isEditingPost = false;
+            currentPostId = null;
         }
         
         function clearComment() {
@@ -4884,6 +5394,14 @@
                 const modalCode = document.getElementById('modal-code');
                 if (modalCode) {
                     modalCode.style.display = 'none';
+                }
+                
+                // Mostrar botones de editar/eliminar si es el propietario
+                const ownerActions = document.getElementById('modal-owner-actions');
+                if (ownerActions && currentUser && post.authorId === currentUser.uid) {
+                    ownerActions.style.display = 'flex';
+                } else if (ownerActions) {
+                    ownerActions.style.display = 'none';
                 }
                 
                 const userLiked = post.likedBy && post.likedBy.includes(currentUser.uid);
@@ -5446,6 +5964,7 @@
     </script>
 </body>
 </html>
+
 
 
 
