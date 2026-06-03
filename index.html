@@ -207,6 +207,8 @@
             display: flex;
             flex-direction: column;
             background: #0F172A;
+            height: calc(100vh - 80px);
+            overflow: hidden;
         }
 
         .chat-header {
@@ -216,6 +218,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .chat-title h3 {
@@ -226,6 +229,22 @@
         .chat-title p {
             font-size: 12px;
             color: #94A3B8;
+        }
+
+        .back-btn {
+            background: #334155;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: white;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .back-btn:hover {
+            background: #F59E0B;
+            color: #0F172A;
         }
 
         .chat-actions {
@@ -315,6 +334,7 @@
             border-top: 1px solid #334155;
             display: flex;
             gap: 12px;
+            flex-shrink: 0;
         }
 
         .chat-input {
@@ -417,7 +437,7 @@
             font-weight: bold;
         }
 
-        /* ========== MODAL DE AUTENTICACIÓN - PANTALLA COMPLETA ========== */
+        /* ========== MODAL DE AUTENTICACIÓN ========== */
         .auth-modal {
             position: fixed;
             top: 0;
@@ -436,7 +456,6 @@
             overflow: auto;
         }
 
-        /* Círculos decorativos */
         .auth-modal::before {
             content: '';
             position: absolute;
@@ -459,7 +478,6 @@
             border-radius: 50%;
         }
 
-        /* Tarjeta del formulario */
         .auth-card {
             max-width: 450px;
             width: 100%;
@@ -638,8 +656,13 @@
         <div class="chat-area">
             <div class="chat-header">
                 <div class="chat-title">
-                    <h3>💬 Chat General</h3>
-                    <p>Conectado con la comunidad</p>
+                    <div style="display: flex; align-items: center;">
+                        <button class="back-btn" id="backToGeneralBtn" style="display: none;">◀ General</button>
+                        <div>
+                            <h3 id="chatTitle">💬 Chat General</h3>
+                            <p id="chatSubtitle">Conectado con la comunidad</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="chat-actions">
                     <button class="send-btn" style="background: #334155; padding: 8px 16px;" onclick="showRules()">📜 Reglas</button>
@@ -706,7 +729,7 @@
                     <span class="points-value">+50 pts</span>
                 </div>
                 <div class="points-item">
-                    <span>💬 Ser activo en chat</span>
+                    <span>💬 Mensaje enviado</span>
                     <span class="points-value">+2 pts</span>
                 </div>
             </div>
@@ -727,19 +750,19 @@
         measurementId: "G-G0HC1SFBL1"
     };
 
-    // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
     let currentUser = null;
     let currentUserData = null;
+    let currentChat = 'general';
+    let currentPrivateUser = null;
 
     // ========== FUNCIONES PRINCIPALES ==========
 
     function showAuthModal() {
         let isLogin = true;
-
         const modalDiv = document.createElement('div');
         modalDiv.className = 'auth-modal';
 
@@ -767,22 +790,16 @@
                         </div>
                     </div>
                 `;
-                const loginBtn = modalDiv.querySelector('#loginBtn');
-                const switchToRegister = modalDiv.querySelector('#switchToRegister');
-                
-                loginBtn.addEventListener('click', async () => {
+                document.getElementById('loginBtn')?.addEventListener('click', async () => {
                     const email = modalDiv.querySelector('#loginEmail').value.trim();
                     const password = modalDiv.querySelector('#loginPassword').value;
                     if (!email || !password) { alert('Completa todos los campos'); return; }
                     try {
                         await auth.signInWithEmailAndPassword(email, password);
                         modalDiv.remove();
-                    } catch (error) {
-                        alert('Error: ' + error.message);
-                    }
+                    } catch (error) { alert('Error: ' + error.message); }
                 });
-                
-                switchToRegister.addEventListener('click', () => {
+                modalDiv.querySelector('#switchToRegister')?.addEventListener('click', () => {
                     isLogin = false;
                     renderModal();
                 });
@@ -813,24 +830,17 @@
                         </div>
                     </div>
                 `;
-                const completeBtn = modalDiv.querySelector('#completeRegBtn');
-                const switchToLogin = modalDiv.querySelector('#switchToLogin');
-                
-                completeBtn.addEventListener('click', async () => {
+                document.getElementById('completeRegBtn')?.addEventListener('click', async () => {
                     const name = modalDiv.querySelector('#regName').value.trim();
                     const email = modalDiv.querySelector('#regEmail').value.trim();
                     const password = modalDiv.querySelector('#regPassword').value;
-                    
-                    if (!name || name.length < 3) { alert('Nombre válido requerido (mínimo 3 caracteres)'); return; }
+                    if (!name || name.length < 3) { alert('Nombre válido (mínimo 3 caracteres)'); return; }
                     if (!email || !email.includes('@')) { alert('Email inválido'); return; }
                     if (!password || password.length < 6) { alert('Mínimo 6 caracteres'); return; }
-                    
                     try {
                         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                        const uid = userCredential.user.uid;
-                        
-                        await db.collection('users').doc(uid).set({
-                            uid: uid,
+                        await db.collection('users').doc(userCredential.user.uid).set({
+                            uid: userCredential.user.uid,
                             name: name,
                             email: email,
                             points: 0,
@@ -838,14 +848,10 @@
                             referrals: 0,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
-                        
                         modalDiv.remove();
-                    } catch (error) {
-                        alert('Error: ' + error.message);
-                    }
+                    } catch (error) { alert('Error: ' + error.message); }
                 });
-                
-                switchToLogin.addEventListener('click', () => {
+                modalDiv.querySelector('#switchToLogin')?.addEventListener('click', () => {
                     isLogin = true;
                     renderModal();
                 });
@@ -855,9 +861,27 @@
         document.body.appendChild(modalDiv);
     }
 
+    function goToGeneralChat() {
+        currentChat = 'general';
+        currentPrivateUser = null;
+        document.getElementById('chatTitle').innerHTML = '💬 Chat General';
+        document.getElementById('chatSubtitle').innerHTML = 'Conectado con la comunidad';
+        document.getElementById('backToGeneralBtn').style.display = 'none';
+        loadMessages();
+    }
+
+    function startPrivateChat(userId, userName) {
+        if (userId === currentUser.uid) return;
+        currentChat = 'private';
+        currentPrivateUser = { id: userId, name: userName };
+        document.getElementById('chatTitle').innerHTML = `🔒 Chat con ${userName}`;
+        document.getElementById('chatSubtitle').innerHTML = 'Mensaje privado';
+        document.getElementById('backToGeneralBtn').style.display = 'block';
+        loadPrivateMessages();
+    }
+
     async function loadUsers() {
         const usersList = document.getElementById('usersList');
-        
         db.collection('users').onSnapshot((snapshot) => {
             const users = [];
             snapshot.forEach(doc => {
@@ -865,12 +889,11 @@
                     users.push({ id: doc.id, ...doc.data() });
                 }
             });
-            
             if (users.length === 0) {
-                usersList.innerHTML = '<div style="text-align:center; padding:20px; color:#94A3B8;">🌟 Invita a más testers a unirse</div>';
+                usersList.innerHTML = '<div style="text-align:center; padding:20px; color:#94A3B8;">🌟 Invita a más testers</div>';
             } else {
                 usersList.innerHTML = users.map(user => `
-                    <div class="user-item" onclick="startPrivateChat('${user.id}', '${user.name}')">
+                    <div class="user-item ${currentPrivateUser?.id === user.id ? 'active' : ''}" onclick="startPrivateChat('${user.id}', '${user.name}')">
                         <div class="user-item-avatar">${user.name ? user.name.charAt(0).toUpperCase() : '?'}</div>
                         <div class="user-item-info">
                             <div class="user-item-name">${escapeHtml(user.name)}</div>
@@ -884,31 +907,49 @@
     }
 
     function loadMessages() {
-        db.collection('messages').orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
-            const messages = [];
-            snapshot.forEach(doc => {
-                messages.push({ id: doc.id, ...doc.data() });
+        if (currentChat === 'general') {
+            db.collection('messages').orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
+                const messages = [];
+                snapshot.forEach(doc => {
+                    if (!doc.data().private) {
+                        messages.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+                renderMessages(messages);
             });
-            
-            const chatDiv = document.getElementById('chatMessages');
-            if (messages.length === 0) {
-                chatDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: #94A3B8;">💬 No hay mensajes aún. ¡Sé el primero en escribir!</div>';
-                return;
-            }
-            
-            chatDiv.innerHTML = messages.map(msg => `
-                <div class="message ${msg.userId === currentUser.uid ? 'sent' : ''}">
-                    <div class="message-avatar">${msg.userName ? msg.userName.charAt(0).toUpperCase() : '?'}</div>
-                    <div class="message-bubble">
-                        <div class="message-name">${escapeHtml(msg.userName || 'Anónimo')}</div>
-                        <div class="message-text">${escapeHtml(msg.text)}</div>
-                        <div class="message-time">${msg.time || ''}</div>
-                    </div>
+        }
+    }
+
+    function loadPrivateMessages() {
+        if (currentChat === 'private' && currentPrivateUser) {
+            const chatId = [currentUser.uid, currentPrivateUser.id].sort().join('_');
+            db.collection('private_messages').where('chatId', '==', chatId).orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
+                const messages = [];
+                snapshot.forEach(doc => {
+                    messages.push({ id: doc.id, ...doc.data() });
+                });
+                renderMessages(messages);
+            });
+        }
+    }
+
+    function renderMessages(messages) {
+        const chatDiv = document.getElementById('chatMessages');
+        if (messages.length === 0) {
+            chatDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: #94A3B8;">💬 No hay mensajes aún. ¡Escribe algo!</div>';
+            return;
+        }
+        chatDiv.innerHTML = messages.map(msg => `
+            <div class="message ${msg.userId === currentUser.uid ? 'sent' : ''}">
+                <div class="message-avatar">${msg.userName ? msg.userName.charAt(0).toUpperCase() : '?'}</div>
+                <div class="message-bubble">
+                    <div class="message-name">${escapeHtml(msg.userName || 'Anónimo')}</div>
+                    <div class="message-text">${escapeHtml(msg.text)}</div>
+                    <div class="message-time">${msg.time || ''}</div>
                 </div>
-            `).join('');
-            
-            chatDiv.scrollTop = chatDiv.scrollHeight;
-        });
+            </div>
+        `).join('');
+        chatDiv.scrollTop = chatDiv.scrollHeight;
     }
 
     async function sendMessage() {
@@ -919,22 +960,35 @@
         const userDoc = await db.collection('users').doc(currentUser.uid).get();
         const userName = userDoc.data()?.name || currentUser.email.split('@')[0];
         
-        await db.collection('messages').add({
-            userId: currentUser.uid,
-            userName: userName,
-            text: text,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            time: new Date().toLocaleTimeString()
-        });
+        if (currentChat === 'general') {
+            await db.collection('messages').add({
+                userId: currentUser.uid,
+                userName: userName,
+                text: text,
+                private: false,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                time: new Date().toLocaleTimeString()
+            });
+        } else if (currentChat === 'private' && currentPrivateUser) {
+            const chatId = [currentUser.uid, currentPrivateUser.id].sort().join('_');
+            await db.collection('private_messages').add({
+                chatId: chatId,
+                userId: currentUser.uid,
+                userName: userName,
+                text: text,
+                toUserId: currentPrivateUser.id,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                time: new Date().toLocaleTimeString()
+            });
+        }
         
-        // Sumar puntos por mensaje
         const userRef = db.collection('users').doc(currentUser.uid);
         const userData = (await userRef.get()).data();
-        await userRef.update({
-            points: (userData.points || 0) + 2
-        });
+        await userRef.update({ points: (userData.points || 0) + 2 });
         
         input.value = '';
+        if (currentChat === 'general') loadMessages();
+        else loadPrivateMessages();
     }
 
     async function loadUserData() {
@@ -946,8 +1000,6 @@
             document.getElementById('referralsCount').innerText = currentUserData.referrals || 0;
             document.getElementById('userAvatar').innerText = (currentUserData.name || 'U').charAt(0).toUpperCase();
         }
-        
-        // Escuchar cambios en los puntos
         db.collection('users').doc(currentUser.uid).onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
@@ -966,7 +1018,7 @@
     }
 
     function showRules() {
-        alert("📜 REGLAS DE LA COMUNIDAD 📜\n\n✅ Prueba al menos 2 apps de otros miembros por día\n✅ Reporta bugs de forma constructiva\n✅ Comparte tu progreso y logros\n🚫 No spam ni auto-promoción excesiva\n🤝 Ayuda a los nuevos miembros\n\n🎯 OBJETIVO: Ayudarnos mutuamente a completar los 14 días de pruebas en Google Play. ¡Juntos somos más fuertes!");
+        alert("📜 REGLAS DE LA COMUNIDAD 📜\n\n✅ Prueba al menos 2 apps de otros miembros por día\n✅ Reporta bugs de forma constructiva\n✅ Comparte tu progreso y logros\n🚫 No spam ni auto-promoción excesiva\n🤝 Ayuda a los nuevos miembros\n\n🎯 OBJETIVO: Ayudarnos mutuamente a completar los 14 días de pruebas en Google Play.");
     }
 
     async function logout() {
@@ -983,40 +1035,32 @@
             loadUsers();
             loadMessages();
             
-            document.getElementById('sendBtn').addEventListener('click', sendMessage);
-            document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            document.getElementById('sendBtn').onclick = sendMessage;
+            document.getElementById('messageInput').onkeypress = (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     sendMessage();
                 }
-            });
-            document.getElementById('logoutBtn').addEventListener('click', logout);
+            };
+            document.getElementById('logoutBtn').onclick = logout;
+            document.getElementById('backToGeneralBtn').onclick = goToGeneralChat;
             
-            // Búsqueda de usuarios
-            document.getElementById('searchUsers').addEventListener('input', (e) => {
+            document.getElementById('searchUsers').oninput = (e) => {
                 const term = e.target.value.toLowerCase();
-                const items = document.querySelectorAll('.user-item');
-                items.forEach(item => {
+                document.querySelectorAll('.user-item').forEach(item => {
                     const name = item.querySelector('.user-item-name')?.innerText.toLowerCase() || '';
-                    if (name.includes(term)) {
-                        item.style.display = 'flex';
-                    } else {
-                        item.style.display = 'none';
-                    }
+                    item.style.display = name.includes(term) ? 'flex' : 'none';
                 });
-            });
+            };
         } else {
             document.getElementById('appContainer').style.display = 'none';
             showAuthModal();
         }
     });
 
-    window.startPrivateChat = (userId, userName) => {
-        const input = document.getElementById('messageInput');
-        input.value = `@${userName} `;
-        input.focus();
-        alert(`💬 Menciona a @${userName} en el chat general. ¡Pronto tendremos chat privado!`);
-    };
+    window.startPrivateChat = startPrivateChat;
+    window.goToGeneralChat = goToGeneralChat;
+    window.showRules = showRules;
 </script>
 </body>
 </html>
