@@ -31,7 +31,7 @@
 
         .header {
             background: linear-gradient(135deg, #1E293B, #0F172A);
-            padding: 20px 24px;
+            padding: 16px 20px;
             border-bottom: 1px solid #334155;
             position: sticky;
             top: 0;
@@ -49,40 +49,40 @@
         }
 
         .logo h1 {
-            font-size: 24px;
+            font-size: 20px;
             color: #F59E0B;
         }
 
         .logo p {
-            font-size: 12px;
+            font-size: 10px;
             color: #94A3B8;
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             background: #1E293B;
-            padding: 8px 20px;
+            padding: 6px 16px;
             border-radius: 60px;
         }
 
         .user-avatar {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, #F59E0B, #D97706);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 16px;
             color: white;
         }
 
         .user-stats {
             display: flex;
-            gap: 15px;
+            gap: 12px;
         }
 
         .stat {
@@ -92,42 +92,86 @@
         .stat-value {
             font-weight: bold;
             color: #F59E0B;
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .stat-label {
-            font-size: 10px;
+            font-size: 9px;
             color: #94A3B8;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            border-radius: 8px;
+        }
+
+        .menu-toggle span {
+            width: 24px;
+            height: 3px;
+            background: #F59E0B;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+        .menu-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
         }
 
         .main-grid {
             display: flex;
             flex: 1;
             gap: 0;
-            min-height: calc(100vh - 80px);
+            min-height: calc(100vh - 72px);
+            position: relative;
         }
 
-        .sidebar {
+        .sidebar-mobile {
+            position: fixed;
+            top: 0;
+            left: -280px;
             width: 280px;
+            height: 100vh;
             background: #1E293B;
-            border-right: 1px solid #334155;
+            z-index: 1000;
+            transition: left 0.3s ease;
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
         }
 
-        .sidebar-header {
+        .sidebar-mobile.open {
+            left: 0;
+        }
+
+        .sidebar-mobile .sidebar-header {
             padding: 20px;
             border-bottom: 1px solid #334155;
+            background: #0F172A;
         }
 
-        .sidebar-header h3 {
-            color: white;
-            font-size: 16px;
-            margin-bottom: 12px;
+        .sidebar-mobile .sidebar-header h3 {
+            color: #F59E0B;
+            font-size: 18px;
         }
 
-        .search-users {
+        .sidebar-mobile .search-users {
             width: 100%;
             padding: 10px 14px;
             background: #0F172A;
@@ -135,16 +179,13 @@
             border-radius: 12px;
             color: white;
             font-size: 14px;
+            margin-top: 12px;
         }
 
-        .search-users:focus {
-            outline: none;
-            border-color: #F59E0B;
-        }
-
-        .users-list {
+        .sidebar-mobile .users-list {
             flex: 1;
             overflow-y: auto;
+            padding: 10px 0;
         }
 
         .user-item {
@@ -155,6 +196,7 @@
             cursor: pointer;
             transition: background 0.2s;
             border-bottom: 1px solid #334155;
+            position: relative;
         }
 
         .user-item:hover {
@@ -164,6 +206,15 @@
         .user-item.active {
             background: #F59E0B20;
             border-left: 3px solid #F59E0B;
+        }
+
+        .user-item.unread {
+            background: rgba(245, 158, 11, 0.15);
+        }
+
+        .user-item.unread .user-item-name {
+            font-weight: bold;
+            color: #F59E0B;
         }
 
         .user-item-avatar {
@@ -176,6 +227,27 @@
             justify-content: center;
             font-weight: bold;
             color: white;
+            position: relative;
+        }
+
+        .user-item-badge {
+            font-size: 10px;
+            background: #F59E0B;
+            padding: 2px 8px;
+            border-radius: 20px;
+            color: #0F172A;
+            font-weight: bold;
+        }
+
+        .unread-count {
+            background: #EF4444;
+            color: white;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
         }
 
         .user-item-info {
@@ -193,13 +265,39 @@
             color: #22C55E;
         }
 
-        .user-item-badge {
-            font-size: 10px;
-            background: #F59E0B;
-            padding: 2px 8px;
-            border-radius: 20px;
-            color: #0F172A;
-            font-weight: bold;
+        .sidebar-desktop {
+            width: 280px;
+            background: #1E293B;
+            border-right: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-desktop .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .sidebar-desktop .sidebar-header h3 {
+            color: white;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .sidebar-desktop .search-users {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0F172A;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .sidebar-desktop .users-list {
+            flex: 1;
+            overflow-y: auto;
         }
 
         .chat-area {
@@ -207,12 +305,12 @@
             display: flex;
             flex-direction: column;
             background: #0F172A;
-            height: calc(100vh - 80px);
+            height: calc(100vh - 72px);
             overflow: hidden;
         }
 
         .chat-header {
-            padding: 20px 24px;
+            padding: 16px 20px;
             background: #1E293B;
             border-bottom: 1px solid #334155;
             display: flex;
@@ -223,48 +321,43 @@
 
         .chat-title h3 {
             color: white;
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .chat-title p {
-            font-size: 12px;
+            font-size: 11px;
             color: #94A3B8;
         }
 
         .back-btn {
             background: #334155;
             border: none;
-            padding: 6px 12px;
+            padding: 5px 10px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             color: white;
             cursor: pointer;
-            margin-right: 10px;
-        }
-
-        .back-btn:hover {
-            background: #F59E0B;
-            color: #0F172A;
+            margin-right: 8px;
         }
 
         .chat-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
         }
 
         .message {
             display: flex;
-            gap: 12px;
-            max-width: 70%;
+            gap: 10px;
+            max-width: 80%;
             animation: fadeIn 0.3s ease;
         }
 
@@ -279,14 +372,14 @@
         }
 
         .message-avatar {
-            width: 35px;
-            height: 35px;
+            width: 30px;
+            height: 30px;
             background: #F59E0B;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
             color: white;
             flex-shrink: 0;
@@ -294,22 +387,22 @@
 
         .message-bubble {
             background: #1E293B;
-            padding: 10px 14px;
-            border-radius: 18px;
+            padding: 8px 12px;
+            border-radius: 16px;
             border-bottom-left-radius: 4px;
         }
 
         .message.sent .message-bubble {
             background: #F59E0B;
-            border-bottom-left-radius: 18px;
+            border-bottom-left-radius: 16px;
             border-bottom-right-radius: 4px;
         }
 
         .message-name {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
             color: #F59E0B;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
 
         .message.sent .message-name {
@@ -318,33 +411,33 @@
 
         .message-text {
             color: white;
-            font-size: 14px;
+            font-size: 13px;
             word-wrap: break-word;
         }
 
         .message-time {
-            font-size: 10px;
+            font-size: 9px;
             color: #94A3B8;
-            margin-top: 4px;
+            margin-top: 3px;
         }
 
         .chat-input-area {
-            padding: 20px;
+            padding: 16px;
             background: #1E293B;
             border-top: 1px solid #334155;
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-shrink: 0;
         }
 
         .chat-input {
             flex: 1;
-            padding: 12px 16px;
+            padding: 10px 14px;
             background: #0F172A;
             border: 1px solid #334155;
             border-radius: 24px;
             color: white;
-            font-size: 14px;
+            font-size: 13px;
             resize: none;
             font-family: inherit;
         }
@@ -357,79 +450,73 @@
         .send-btn {
             background: #F59E0B;
             border: none;
-            padding: 0 24px;
+            padding: 0 20px;
             border-radius: 24px;
             font-weight: bold;
             color: #0F172A;
             cursor: pointer;
-            transition: transform 0.1s;
-        }
-
-        .send-btn:active {
-            transform: scale(0.95);
         }
 
         .right-sidebar {
-            width: 300px;
+            width: 260px;
             background: #1E293B;
             border-left: 1px solid #334155;
             overflow-y: auto;
         }
 
         .mission-card {
-            padding: 20px;
+            padding: 16px;
             background: linear-gradient(135deg, #F59E0B20, #D9770620);
-            margin: 16px;
-            border-radius: 20px;
+            margin: 12px;
+            border-radius: 16px;
             border: 1px solid #F59E0B40;
         }
 
         .mission-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: #F59E0B;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .mission-text {
             color: #CBD5E1;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 16px;
+            font-size: 12px;
+            line-height: 1.4;
         }
 
         .rule-item {
-            padding: 12px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #334155;
             display: flex;
-            gap: 12px;
+            gap: 10px;
             align-items: center;
         }
 
         .rule-icon {
-            font-size: 20px;
+            font-size: 16px;
         }
 
         .rule-text {
             flex: 1;
             color: #CBD5E1;
-            font-size: 13px;
+            font-size: 11px;
         }
 
         .points-board {
             background: #0F172A;
-            margin: 16px;
-            padding: 16px;
+            margin: 12px;
+            padding: 12px;
             border-radius: 16px;
         }
 
         .points-item {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #334155;
             color: #CBD5E1;
-            font-size: 13px;
+            font-size: 11px;
         }
 
         .points-value {
@@ -437,7 +524,44 @@
             font-weight: bold;
         }
 
-        /* ========== MODAL DE AUTENTICACIÓN ========== */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .menu-overlay.show {
+            display: block;
+        }
+
+        .mobile-only {
+            display: none;
+        }
+
+        .desktop-only {
+            display: flex;
+        }
+
+        @media (max-width: 900px) {
+            .desktop-only {
+                display: none;
+            }
+            .mobile-only {
+                display: flex;
+            }
+            .right-sidebar {
+                display: none;
+            }
+            .message {
+                max-width: 90%;
+            }
+        }
+
         .auth-modal {
             position: fixed;
             top: 0;
@@ -452,69 +576,31 @@
             justify-content: center;
             padding: 20px;
             background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
-            margin: 0;
-            overflow: auto;
-        }
-
-        .auth-modal::before {
-            content: '';
-            position: absolute;
-            top: -20%;
-            left: -20%;
-            width: 60%;
-            height: 60%;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-
-        .auth-modal::after {
-            content: '';
-            position: absolute;
-            bottom: -20%;
-            right: -20%;
-            width: 60%;
-            height: 60%;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
         }
 
         .auth-card {
-            max-width: 450px;
+            max-width: 400px;
             width: 100%;
-            border-radius: 48px;
+            border-radius: 40px;
             overflow: hidden;
-            animation: fadeIn 0.3s ease;
-            position: relative;
-            z-index: 1;
             background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(10px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(245, 158, 11, 0.3);
         }
 
         .auth-header {
             background: linear-gradient(135deg, #F59E0B, #D97706);
-            padding: 28px 24px;
+            padding: 24px;
             text-align: center;
             color: white;
         }
 
-        .auth-header h2 {
-            font-size: 28px;
-            margin-bottom: 4px;
-        }
-
-        .auth-header p {
-            font-size: 13px;
-            opacity: 0.9;
-        }
-
         .auth-body {
-            padding: 28px 24px;
+            padding: 24px;
         }
 
         .input-field {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
         .input-field label {
@@ -527,28 +613,17 @@
 
         .input-field input {
             width: 100%;
-            padding: 14px 16px;
+            padding: 12px 14px;
             background: #0F172A;
             border: 1.5px solid #334155;
             border-radius: 24px;
             font-size: 14px;
             color: white;
-            transition: all 0.2s;
-        }
-
-        .input-field input:focus {
-            outline: none;
-            border-color: #F59E0B;
-            background: #0F172A;
-        }
-
-        .input-field input::placeholder {
-            color: #64748B;
         }
 
         .btn-auth {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             border-radius: 40px;
             font-weight: 800;
             background: linear-gradient(95deg, #F59E0B, #D97706);
@@ -556,22 +631,12 @@
             border: none;
             cursor: pointer;
             margin-top: 12px;
-            font-size: 16px;
-            transition: transform 0.1s, opacity 0.2s;
-        }
-
-        .btn-auth:active {
-            transform: scale(0.97);
-        }
-
-        .btn-auth:hover {
-            opacity: 0.9;
         }
 
         .auth-switch {
             text-align: center;
-            margin-top: 20px;
-            font-size: 13px;
+            margin-top: 16px;
+            font-size: 12px;
             color: #94A3B8;
         }
 
@@ -579,37 +644,12 @@
             color: #F59E0B;
             cursor: pointer;
             font-weight: bold;
-            margin-left: 4px;
-        }
-
-        .auth-switch span:hover {
-            text-decoration: underline;
         }
 
         .loading {
             text-align: center;
             padding: 40px;
             color: #F59E0B;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        @media (max-width: 900px) {
-            .sidebar, .right-sidebar {
-                display: none;
-            }
-            .main-grid {
-                flex-direction: column;
-            }
-            .message {
-                max-width: 90%;
-            }
-            .auth-card {
-                margin: 16px;
-            }
         }
     </style>
 </head>
@@ -618,6 +658,11 @@
 <div class="app-container" id="appContainer" style="display: none;">
     <div class="header">
         <div class="header-content">
+            <button class="menu-toggle mobile-only" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <div class="logo">
                 <h1>👥 Testers Community</h1>
                 <p>Ayudándonos a crecer juntos</p>
@@ -627,7 +672,7 @@
                 <div class="user-stats">
                     <div class="stat">
                         <div class="stat-value" id="pointsDisplay">0</div>
-                        <div class="stat-label">Puntos</div>
+                        <div class="stat-label">Pts</div>
                     </div>
                     <div class="stat">
                         <div class="stat-value" id="testsDone">0</div>
@@ -635,7 +680,7 @@
                     </div>
                     <div class="stat">
                         <div class="stat-value" id="referralsCount">0</div>
-                        <div class="stat-label">Referidos</div>
+                        <div class="stat-label">Refs</div>
                     </div>
                 </div>
             </div>
@@ -643,21 +688,32 @@
     </div>
 
     <div class="main-grid">
-        <div class="sidebar">
+        <div class="sidebar-desktop desktop-only">
             <div class="sidebar-header">
                 <h3>🌟 Miembros Activos</h3>
-                <input type="text" class="search-users" id="searchUsers" placeholder="Buscar tester...">
+                <input type="text" class="search-users" id="searchUsersDesktop" placeholder="Buscar tester...">
             </div>
-            <div class="users-list" id="usersList">
-                <div class="loading">Cargando usuarios...</div>
+            <div class="users-list" id="usersListDesktop">
+                <div class="loading">Cargando...</div>
             </div>
         </div>
+
+        <div class="sidebar-mobile" id="sidebarMobile">
+            <div class="sidebar-header">
+                <h3>🌟 Miembros Activos</h3>
+                <input type="text" class="search-users" id="searchUsersMobile" placeholder="Buscar tester...">
+            </div>
+            <div class="users-list" id="usersListMobile">
+                <div class="loading">Cargando...</div>
+            </div>
+        </div>
+        <div class="menu-overlay" id="menuOverlay"></div>
 
         <div class="chat-area">
             <div class="chat-header">
                 <div class="chat-title">
                     <div style="display: flex; align-items: center;">
-                        <button class="back-btn" id="backToGeneralBtn" style="display: none;">◀ General</button>
+                        <button class="back-btn" id="backToGeneralBtn" style="display: none;">◀</button>
                         <div>
                             <h3 id="chatTitle">💬 Chat General</h3>
                             <p id="chatSubtitle">Conectado con la comunidad</p>
@@ -665,18 +721,16 @@
                     </div>
                 </div>
                 <div class="chat-actions">
-                    <button class="send-btn" style="background: #334155; padding: 8px 16px;" onclick="showRules()">📜 Reglas</button>
-                    <button class="send-btn" id="logoutBtn" style="background: #EF4444; padding: 8px 16px;">🚪 Salir</button>
+                    <button class="send-btn" style="background: #334155; padding: 6px 12px; font-size: 12px;" onclick="showRules()">📜</button>
+                    <button class="send-btn" id="logoutBtn" style="background: #EF4444; padding: 6px 12px; font-size: 12px;">🚪</button>
                 </div>
             </div>
             <div class="chat-messages" id="chatMessages">
-                <div style="text-align: center; padding: 40px; color: #94A3B8;">
-                    💬 Cargando mensajes...
-                </div>
+                <div style="text-align: center; padding: 40px; color: #94A3B8;">💬 Cargando mensajes...</div>
             </div>
             <div class="chat-input-area">
                 <textarea class="chat-input" id="messageInput" placeholder="Escribe tu mensaje..." rows="1"></textarea>
-                <button class="send-btn" id="sendBtn">📤 Enviar</button>
+                <button class="send-btn" id="sendBtn">📤</button>
             </div>
         </div>
 
@@ -685,60 +739,30 @@
                 <div class="mission-title">🎯 Nuestro Objetivo</div>
                 <div class="mission-text">
                     ¡Ayudarnos mutuamente a completar los 14 días de pruebas en Google Play!<br><br>
-                    Cada uno de nosotros necesita 12 testers activos. Juntos somos más fuertes. 
-                    Comparte tu app, prueba la de otros y ganemos todos.
+                    Cada uno necesita 12 testers activos. Juntos somos más fuertes.
                 </div>
             </div>
 
             <div class="mission-card">
-                <div class="mission-title">📋 Reglas de la Comunidad</div>
-                <div class="rule-item">
-                    <div class="rule-icon">✅</div>
-                    <div class="rule-text">Prueba al menos 2 apps de otros miembros por día</div>
-                </div>
-                <div class="rule-item">
-                    <div class="rule-icon">✅</div>
-                    <div class="rule-text">Reporta bugs de forma constructiva</div>
-                </div>
-                <div class="rule-item">
-                    <div class="rule-icon">✅</div>
-                    <div class="rule-text">Comparte tu progreso y logros</div>
-                </div>
-                <div class="rule-item">
-                    <div class="rule-icon">🚫</div>
-                    <div class="rule-text">No spam ni auto-promoción excesiva</div>
-                </div>
-                <div class="rule-item">
-                    <div class="rule-icon">🤝</div>
-                    <div class="rule-text">Ayuda a los nuevos miembros</div>
-                </div>
+                <div class="mission-title">📋 Reglas</div>
+                <div class="rule-item"><div class="rule-icon">✅</div><div class="rule-text">Prueba apps de otros</div></div>
+                <div class="rule-item"><div class="rule-icon">🐛</div><div class="rule-text">Reporta bugs</div></div>
+                <div class="rule-item"><div class="rule-icon">🚫</div><div class="rule-text">No spam</div></div>
+                <div class="rule-item"><div class="rule-icon">🤝</div><div class="rule-text">Ayuda a nuevos</div></div>
             </div>
 
             <div class="points-board">
-                <div class="mission-title" style="font-size: 14px;">🏆 Puntos por Acciones</div>
-                <div class="points-item">
-                    <span>📱 Probar una app</span>
-                    <span class="points-value">+10 pts</span>
-                </div>
-                <div class="points-item">
-                    <span>🐛 Reportar un bug</span>
-                    <span class="points-value">+25 pts</span>
-                </div>
-                <div class="points-item">
-                    <span>👥 Referir un tester</span>
-                    <span class="points-value">+50 pts</span>
-                </div>
-                <div class="points-item">
-                    <span>💬 Mensaje enviado</span>
-                    <span class="points-value">+2 pts</span>
-                </div>
+                <div class="mission-title" style="font-size: 14px;">🏆 Puntos</div>
+                <div class="points-item"><span>📱 Probar app</span><span class="points-value">+10</span></div>
+                <div class="points-item"><span>🐛 Reportar bug</span><span class="points-value">+25</span></div>
+                <div class="points-item"><span>👥 Referir tester</span><span class="points-value">+50</span></div>
+                <div class="points-item"><span>💬 Mensaje</span><span class="points-value">+2</span></div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // ========== CONFIGURACIÓN DE FIREBASE ==========
     const firebaseConfig = {
         apiKey: "AIzaSyBNWJiMSEqlMPpRbJaq4HUkw8Cm7UIVnV8",
         authDomain: "testersapps.firebaseapp.com",
@@ -758,107 +782,191 @@
     let currentUserData = null;
     let currentChat = 'general';
     let currentPrivateUser = null;
+    
+    // Almacenar mensajes no leídos por chat
+    let unreadCounts = {};
+    let lastReadTimestamps = {};
+    let notificationPermission = false;
 
-    // ========== FUNCIONES PRINCIPALES ==========
-
-    function showAuthModal() {
-        let isLogin = true;
-        const modalDiv = document.createElement('div');
-        modalDiv.className = 'auth-modal';
-
-        function renderModal() {
-            if (isLogin) {
-                modalDiv.innerHTML = `
-                    <div class="auth-card">
-                        <div class="auth-header">
-                            <h2>🔐 Testers Community</h2>
-                            <p>Ayuda mutua para Google Play</p>
-                        </div>
-                        <div class="auth-body">
-                            <div class="input-field">
-                                <label>📧 Correo electrónico</label>
-                                <input type="email" id="loginEmail" placeholder="tu@email.com">
-                            </div>
-                            <div class="input-field">
-                                <label>🔒 Contraseña</label>
-                                <input type="password" id="loginPassword" placeholder="Tu contraseña">
-                            </div>
-                            <button class="btn-auth" id="loginBtn">Iniciar Sesión</button>
-                            <div class="auth-switch">
-                                ¿No tienes cuenta? <span id="switchToRegister">Regístrate gratis</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('loginBtn')?.addEventListener('click', async () => {
-                    const email = modalDiv.querySelector('#loginEmail').value.trim();
-                    const password = modalDiv.querySelector('#loginPassword').value;
-                    if (!email || !password) { alert('Completa todos los campos'); return; }
-                    try {
-                        await auth.signInWithEmailAndPassword(email, password);
-                        modalDiv.remove();
-                    } catch (error) { alert('Error: ' + error.message); }
-                });
-                modalDiv.querySelector('#switchToRegister')?.addEventListener('click', () => {
-                    isLogin = false;
-                    renderModal();
-                });
-            } else {
-                modalDiv.innerHTML = `
-                    <div class="auth-card">
-                        <div class="auth-header">
-                            <h2>✨ Crear Cuenta Gratis</h2>
-                            <p>Únete a la comunidad de testers</p>
-                        </div>
-                        <div class="auth-body">
-                            <div class="input-field">
-                                <label>📛 Nombre de usuario</label>
-                                <input type="text" id="regName" placeholder="Ej: Tester123">
-                            </div>
-                            <div class="input-field">
-                                <label>📧 Correo electrónico</label>
-                                <input type="email" id="regEmail" placeholder="tu@email.com">
-                            </div>
-                            <div class="input-field">
-                                <label>🔒 Contraseña</label>
-                                <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres">
-                            </div>
-                            <button class="btn-auth" id="completeRegBtn">✅ REGISTRARME</button>
-                            <div class="auth-switch">
-                                ¿Ya tienes cuenta? <span id="switchToLogin">Inicia sesión</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('completeRegBtn')?.addEventListener('click', async () => {
-                    const name = modalDiv.querySelector('#regName').value.trim();
-                    const email = modalDiv.querySelector('#regEmail').value.trim();
-                    const password = modalDiv.querySelector('#regPassword').value;
-                    if (!name || name.length < 3) { alert('Nombre válido (mínimo 3 caracteres)'); return; }
-                    if (!email || !email.includes('@')) { alert('Email inválido'); return; }
-                    if (!password || password.length < 6) { alert('Mínimo 6 caracteres'); return; }
-                    try {
-                        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                        await db.collection('users').doc(userCredential.user.uid).set({
-                            uid: userCredential.user.uid,
-                            name: name,
-                            email: email,
-                            points: 0,
-                            testsDone: 0,
-                            referrals: 0,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        modalDiv.remove();
-                    } catch (error) { alert('Error: ' + error.message); }
-                });
-                modalDiv.querySelector('#switchToLogin')?.addEventListener('click', () => {
-                    isLogin = true;
-                    renderModal();
-                });
+    // Solicitar permiso para notificaciones
+    async function requestNotificationPermission() {
+        if ('Notification' in window) {
+            const permission = await Notification.requestPermission();
+            notificationPermission = permission === 'granted';
+            if (notificationPermission) {
+                console.log('✅ Notificaciones permitidas');
             }
         }
-        renderModal();
-        document.body.appendChild(modalDiv);
+    }
+
+    // Mostrar notificación
+    function showNotification(title, body, userId) {
+        if (!notificationPermission) return;
+        
+        const notification = new Notification(title, {
+            body: body,
+            icon: 'https://www.gstatic.com/play-logo/play_logo.png',
+            tag: userId,
+            renotify: true
+        });
+        
+        notification.onclick = () => {
+            window.focus();
+            if (userId) {
+                startPrivateChat(userId, title.replace('🔒 ', ''));
+            }
+            notification.close();
+        };
+        
+        setTimeout(() => notification.close(), 5000);
+    }
+
+    // Marcar mensajes como leídos para un chat específico
+    async function markChatAsRead(userId = null) {
+        const chatId = userId ? [currentUser.uid, userId].sort().join('_') : 'general';
+        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+        
+        await db.collection('read_receipts').doc(`${currentUser.uid}_${chatId}`).set({
+            lastRead: timestamp,
+            userId: currentUser.uid,
+            chatId: chatId
+        }, { merge: true });
+        
+        // Actualizar contador local
+        if (userId) {
+            unreadCounts[userId] = 0;
+        } else {
+            unreadCounts['general'] = 0;
+        }
+        updateUnreadBadges();
+    }
+
+    // Actualizar badges de mensajes no leídos en la UI
+    function updateUnreadBadges() {
+        document.querySelectorAll('.user-item').forEach(item => {
+            const userId = item.getAttribute('data-user-id');
+            if (userId && unreadCounts[userId] > 0) {
+                item.classList.add('unread');
+                let badge = item.querySelector('.unread-count');
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'unread-count';
+                    item.querySelector('.user-item-info').appendChild(badge);
+                }
+                badge.textContent = unreadCounts[userId] > 99 ? '99+' : unreadCounts[userId];
+            } else if (userId) {
+                item.classList.remove('unread');
+                const badge = item.querySelector('.unread-count');
+                if (badge) badge.remove();
+            }
+        });
+        
+        // Actualizar título de la página con contador total
+        const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+        document.title = totalUnread > 0 ? `(${totalUnread}) Testers Community` : 'Testers Community';
+    }
+
+    // Cargar última lectura del usuario
+    async function loadLastReadTimestamps() {
+        const receipts = await db.collection('read_receipts')
+            .where('userId', '==', currentUser.uid)
+            .get();
+        
+        receipts.forEach(doc => {
+            const data = doc.data();
+            if (data.lastRead) {
+                lastReadTimestamps[data.chatId] = data.lastRead.toDate().getTime();
+            }
+        });
+    }
+
+    // Verificar mensajes no leídos
+    function checkUnreadMessages(messages, chatId, senderId = null) {
+        const lastRead = lastReadTimestamps[chatId] || 0;
+        let unread = 0;
+        
+        messages.forEach(msg => {
+            if (msg.userId !== currentUser.uid) {
+                const msgTime = msg.timestamp?.toDate?.()?.getTime() || Date.now();
+                if (msgTime > lastRead) {
+                    unread++;
+                }
+            }
+        });
+        
+        if (senderId) {
+            unreadCounts[senderId] = unread;
+        } else {
+            unreadCounts['general'] = unread;
+        }
+        updateUnreadBadges();
+        
+        return unread;
+    }
+
+    // Versión mejorada de loadMessages con notificaciones
+    function loadMessagesWithNotifications() {
+        if (currentChat === 'general') {
+            db.collection('messages').orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
+                const messages = [];
+                let lastMessage = null;
+                
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const msg = { id: change.doc.id, ...change.doc.data() };
+                        if (!msg.private) {
+                            messages.push(msg);
+                            if (msg.userId !== currentUser.uid) {
+                                lastMessage = msg;
+                            }
+                        }
+                    }
+                });
+                
+                // Si hay un mensaje nuevo y no estamos en el chat, mostrar notificación
+                if (lastMessage && currentChat !== 'general') {
+                    showNotification('📢 Chat General', lastMessage.text, null);
+                }
+                
+                renderMessages(messages);
+                checkUnreadMessages(messages, 'general');
+            });
+        }
+    }
+
+    // Versión mejorada de loadPrivateMessages con notificaciones
+    function loadPrivateMessagesWithNotifications() {
+        if (currentChat === 'private' && currentPrivateUser) {
+            const chatId = [currentUser.uid, currentPrivateUser.id].sort().join('_');
+            db.collection('private_messages').where('chatId', '==', chatId).orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
+                const messages = [];
+                let lastMessage = null;
+                
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const msg = { id: change.doc.id, ...change.doc.data() };
+                        messages.push(msg);
+                        if (msg.userId !== currentUser.uid) {
+                            lastMessage = msg;
+                        }
+                    }
+                });
+                
+                // Si hay un mensaje nuevo y no estamos en este chat privado, mostrar notificación
+                if (lastMessage && (currentChat !== 'private' || currentPrivateUser?.id !== lastMessage.userId)) {
+                    showNotification(`🔒 ${lastMessage.userName}`, lastMessage.text, lastMessage.userId);
+                    if (unreadCounts[currentPrivateUser?.id] !== undefined) {
+                        unreadCounts[currentPrivateUser.id] = (unreadCounts[currentPrivateUser.id] || 0) + 1;
+                        updateUnreadBadges();
+                    }
+                }
+                
+                renderMessages(messages);
+                if (currentChat === 'private' && currentPrivateUser) {
+                    checkUnreadMessages(messages, chatId, currentPrivateUser.id);
+                }
+            });
+        }
     }
 
     function goToGeneralChat() {
@@ -867,80 +975,52 @@
         document.getElementById('chatTitle').innerHTML = '💬 Chat General';
         document.getElementById('chatSubtitle').innerHTML = 'Conectado con la comunidad';
         document.getElementById('backToGeneralBtn').style.display = 'none';
-        loadMessages();
+        markChatAsRead(null);
+        loadMessagesWithNotifications();
+        closeMenu();
     }
 
-    function startPrivateChat(userId, userName) {
-        if (userId === currentUser.uid) return;
+    async function startPrivateChat(userId, userName) {
+        if (userId === currentUser?.uid) return;
         currentChat = 'private';
         currentPrivateUser = { id: userId, name: userName };
-        document.getElementById('chatTitle').innerHTML = `🔒 Chat con ${userName}`;
+        document.getElementById('chatTitle').innerHTML = `🔒 ${userName}`;
         document.getElementById('chatSubtitle').innerHTML = 'Mensaje privado';
         document.getElementById('backToGeneralBtn').style.display = 'block';
-        loadPrivateMessages();
+        await markChatAsRead(userId);
+        loadPrivateMessagesWithNotifications();
+        closeMenu();
     }
 
-    async function loadUsers() {
-        const usersList = document.getElementById('usersList');
-        db.collection('users').onSnapshot((snapshot) => {
-            const users = [];
-            snapshot.forEach(doc => {
-                if (doc.id !== currentUser.uid) {
-                    users.push({ id: doc.id, ...doc.data() });
-                }
-            });
-            if (users.length === 0) {
-                usersList.innerHTML = '<div style="text-align:center; padding:20px; color:#94A3B8;">🌟 Invita a más testers</div>';
-            } else {
-                usersList.innerHTML = users.map(user => `
-                    <div class="user-item ${currentPrivateUser?.id === user.id ? 'active' : ''}" onclick="startPrivateChat('${user.id}', '${user.name}')">
-                        <div class="user-item-avatar">${user.name ? user.name.charAt(0).toUpperCase() : '?'}</div>
-                        <div class="user-item-info">
-                            <div class="user-item-name">${escapeHtml(user.name)}</div>
-                            <div class="user-item-status">🟢 Activo</div>
-                        </div>
-                        <div class="user-item-badge">${user.points || 0} pts</div>
-                    </div>
-                `).join('');
-            }
-        });
-    }
-
-    function loadMessages() {
-        if (currentChat === 'general') {
-            db.collection('messages').orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
-                const messages = [];
-                snapshot.forEach(doc => {
-                    if (!doc.data().private) {
-                        messages.push({ id: doc.id, ...doc.data() });
-                    }
-                });
-                renderMessages(messages);
-            });
+    function renderUsersList(containerId, users) {
+        const container = document.getElementById(containerId);
+        if (users.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#94A3B8;">🌟 Invita más testers</div>';
+            return;
         }
-    }
-
-    function loadPrivateMessages() {
-        if (currentChat === 'private' && currentPrivateUser) {
-            const chatId = [currentUser.uid, currentPrivateUser.id].sort().join('_');
-            db.collection('private_messages').where('chatId', '==', chatId).orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
-                const messages = [];
-                snapshot.forEach(doc => {
-                    messages.push({ id: doc.id, ...doc.data() });
-                });
-                renderMessages(messages);
-            });
-        }
+        container.innerHTML = users.map(user => `
+            <div class="user-item ${currentPrivateUser?.id === user.id ? 'active' : ''}" data-user-id="${user.id}" onclick="startPrivateChat('${user.id}', '${user.name}')">
+                <div class="user-item-avatar">${user.name ? user.name.charAt(0).toUpperCase() : '?'}</div>
+                <div class="user-item-info">
+                    <div class="user-item-name">${escapeHtml(user.name)}</div>
+                    <div class="user-item-status">🟢 Activo</div>
+                </div>
+                <div class="user-item-badge">${user.points || 0}</div>
+            </div>
+        `).join('');
+        
+        // Actualizar badges después de renderizar
+        updateUnreadBadges();
     }
 
     function renderMessages(messages) {
         const chatDiv = document.getElementById('chatMessages');
         if (messages.length === 0) {
-            chatDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: #94A3B8;">💬 No hay mensajes aún. ¡Escribe algo!</div>';
+            chatDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: #94A3B8;">💬 No hay mensajes. ¡Escribe algo!</div>';
             return;
         }
         chatDiv.innerHTML = messages.map(msg => `
-            <div class="message ${msg.userId === currentUser.uid ? 'sent' : ''}">
+            <div class="message ${msg.userId === currentUser?.uid ? 'sent' : ''}">
                 <div class="message-avatar">${msg.userName ? msg.userName.charAt(0).toUpperCase() : '?'}</div>
                 <div class="message-bubble">
                     <div class="message-name">${escapeHtml(msg.userName || 'Anónimo')}</div>
@@ -987,8 +1067,32 @@
         await userRef.update({ points: (userData.points || 0) + 2 });
         
         input.value = '';
-        if (currentChat === 'general') loadMessages();
-        else loadPrivateMessages();
+    }
+
+    async function loadUsers() {
+        db.collection('users').onSnapshot((snapshot) => {
+            const users = [];
+            snapshot.forEach(doc => {
+                if (doc.id !== currentUser?.uid) {
+                    users.push({ id: doc.id, ...doc.data() });
+                }
+            });
+            renderUsersList('usersListDesktop', users);
+            renderUsersList('usersListMobile', users);
+            
+            // Configurar búsqueda
+            ['Desktop', 'Mobile'].forEach(suffix => {
+                const searchInput = document.getElementById(`searchUsers${suffix}`);
+                if (searchInput) {
+                    const term = searchInput.value.toLowerCase();
+                    const items = document.querySelectorAll(`#usersList${suffix} .user-item`);
+                    items.forEach(item => {
+                        const name = item.querySelector('.user-item-name')?.innerText.toLowerCase() || '';
+                        item.style.display = name.includes(term) ? 'flex' : 'none';
+                    });
+                }
+            });
+        });
     }
 
     async function loadUserData() {
@@ -1018,7 +1122,7 @@
     }
 
     function showRules() {
-        alert("📜 REGLAS DE LA COMUNIDAD 📜\n\n✅ Prueba al menos 2 apps de otros miembros por día\n✅ Reporta bugs de forma constructiva\n✅ Comparte tu progreso y logros\n🚫 No spam ni auto-promoción excesiva\n🤝 Ayuda a los nuevos miembros\n\n🎯 OBJETIVO: Ayudarnos mutuamente a completar los 14 días de pruebas en Google Play.");
+        alert("📜 REGLAS\n\n✅ Prueba apps de otros\n✅ Reporta bugs\n🚫 No spam\n🤝 Ayuda a nuevos\n\n🎯 OBJETIVO: Completar 14 días de pruebas entre todos.");
     }
 
     async function logout() {
@@ -1026,14 +1130,130 @@
         location.reload();
     }
 
-    // ========== EVENTOS ==========
+    function showAuthModal() {
+        let isLogin = true;
+        const modalDiv = document.createElement('div');
+        modalDiv.className = 'auth-modal';
+
+        function renderModal() {
+            if (isLogin) {
+                modalDiv.innerHTML = `
+                    <div class="auth-card">
+                        <div class="auth-header">
+                            <h2>🔐 Testers Community</h2>
+                            <p>Ayuda mutua para Google Play</p>
+                        </div>
+                        <div class="auth-body">
+                            <div class="input-field">
+                                <label>📧 Correo</label>
+                                <input type="email" id="loginEmail" placeholder="tu@email.com">
+                            </div>
+                            <div class="input-field">
+                                <label>🔒 Contraseña</label>
+                                <input type="password" id="loginPassword" placeholder="Tu contraseña">
+                            </div>
+                            <button class="btn-auth" id="loginBtn">Iniciar Sesión</button>
+                            <div class="auth-switch">¿Nuevo? <span id="switchToRegister">Regístrate</span></div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('loginBtn')?.addEventListener('click', async () => {
+                    const email = modalDiv.querySelector('#loginEmail').value.trim();
+                    const password = modalDiv.querySelector('#loginPassword').value;
+                    if (!email || !password) { alert('Completa campos'); return; }
+                    try {
+                        await auth.signInWithEmailAndPassword(email, password);
+                        modalDiv.remove();
+                    } catch (error) { alert('Error: ' + error.message); }
+                });
+                modalDiv.querySelector('#switchToRegister')?.addEventListener('click', () => {
+                    isLogin = false;
+                    renderModal();
+                });
+            } else {
+                modalDiv.innerHTML = `
+                    <div class="auth-card">
+                        <div class="auth-header">
+                            <h2>✨ Crear Cuenta</h2>
+                            <p>Únete a la comunidad</p>
+                        </div>
+                        <div class="auth-body">
+                            <div class="input-field">
+                                <label>📛 Usuario</label>
+                                <input type="text" id="regName" placeholder="Ej: Tester123">
+                            </div>
+                            <div class="input-field">
+                                <label>📧 Correo</label>
+                                <input type="email" id="regEmail" placeholder="tu@email.com">
+                            </div>
+                            <div class="input-field">
+                                <label>🔒 Contraseña</label>
+                                <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres">
+                            </div>
+                            <button class="btn-auth" id="completeRegBtn">✅ REGISTRARME</button>
+                            <div class="auth-switch">¿Ya tienes cuenta? <span id="switchToLogin">Inicia sesión</span></div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('completeRegBtn')?.addEventListener('click', async () => {
+                    const name = modalDiv.querySelector('#regName').value.trim();
+                    const email = modalDiv.querySelector('#regEmail').value.trim();
+                    const password = modalDiv.querySelector('#regPassword').value;
+                    if (!name || name.length < 3) { alert('Nombre válido (mínimo 3 caracteres)'); return; }
+                    if (!email || !email.includes('@')) { alert('Email inválido'); return; }
+                    if (!password || password.length < 6) { alert('Mínimo 6 caracteres'); return; }
+                    try {
+                        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                        await db.collection('users').doc(userCredential.user.uid).set({
+                            uid: userCredential.user.uid,
+                            name: name,
+                            email: email,
+                            points: 0,
+                            testsDone: 0,
+                            referrals: 0,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        modalDiv.remove();
+                    } catch (error) { alert('Error: ' + error.message); }
+                });
+                modalDiv.querySelector('#switchToLogin')?.addEventListener('click', () => {
+                    isLogin = true;
+                    renderModal();
+                });
+            }
+        }
+        renderModal();
+        document.body.appendChild(modalDiv);
+    }
+
+    function toggleMenu() {
+        const sidebar = document.getElementById('sidebarMobile');
+        const overlay = document.getElementById('menuOverlay');
+        const toggle = document.getElementById('menuToggle');
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('show');
+        toggle.classList.toggle('active');
+    }
+
+    function closeMenu() {
+        const sidebar = document.getElementById('sidebarMobile');
+        const overlay = document.getElementById('menuOverlay');
+        const toggle = document.getElementById('menuToggle');
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+        toggle.classList.remove('active');
+    }
+
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             currentUser = user;
             document.getElementById('appContainer').style.display = 'flex';
             await loadUserData();
-            loadUsers();
-            loadMessages();
+            await loadUsers();
+            await loadLastReadTimestamps();
+            await requestNotificationPermission();
+            
+            loadMessagesWithNotifications();
             
             document.getElementById('sendBtn').onclick = sendMessage;
             document.getElementById('messageInput').onkeypress = (e) => {
@@ -1044,10 +1264,20 @@
             };
             document.getElementById('logoutBtn').onclick = logout;
             document.getElementById('backToGeneralBtn').onclick = goToGeneralChat;
+            document.getElementById('menuToggle').onclick = toggleMenu;
+            document.getElementById('menuOverlay').onclick = closeMenu;
             
-            document.getElementById('searchUsers').oninput = (e) => {
+            document.getElementById('searchUsersDesktop').oninput = (e) => {
                 const term = e.target.value.toLowerCase();
-                document.querySelectorAll('.user-item').forEach(item => {
+                document.querySelectorAll('#usersListDesktop .user-item').forEach(item => {
+                    const name = item.querySelector('.user-item-name')?.innerText.toLowerCase() || '';
+                    item.style.display = name.includes(term) ? 'flex' : 'none';
+                });
+            };
+            
+            document.getElementById('searchUsersMobile').oninput = (e) => {
+                const term = e.target.value.toLowerCase();
+                document.querySelectorAll('#usersListMobile .user-item').forEach(item => {
                     const name = item.querySelector('.user-item-name')?.innerText.toLowerCase() || '';
                     item.style.display = name.includes(term) ? 'flex' : 'none';
                 });
@@ -1061,6 +1291,8 @@
     window.startPrivateChat = startPrivateChat;
     window.goToGeneralChat = goToGeneralChat;
     window.showRules = showRules;
+    window.toggleMenu = toggleMenu;
+    window.closeMenu = closeMenu;
 </script>
 </body>
 </html>
