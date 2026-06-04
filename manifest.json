@@ -1,0 +1,11 @@
+{
+    "name": "Testers Community",
+    "short_name": "Testers",
+    "description": "Ayuda mutua para aprobar apps en Google Play",
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#F59E0B",
+    "background_color": "#0F172A",
+    "icons": [],
+    "gcm_sender_id": "52899437311"
+}
