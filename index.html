@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
     <title>Testers Community - Ayuda Mutua para Google Play</title>
+    <link rel="manifest" href="manifest.json">
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -112,7 +114,6 @@
             align-items: center;
             gap: 5px;
             border-radius: 8px;
-            transition: background 0.2s;
         }
 
         .menu-toggle span {
@@ -197,7 +198,6 @@
             cursor: pointer;
             transition: background 0.2s;
             border-bottom: 1px solid #334155;
-            position: relative;
         }
 
         .user-item:hover {
@@ -209,12 +209,10 @@
             border-left: 3px solid #F59E0B;
         }
 
-        /* Chat no leído - resaltado */
         .user-item.unread {
             background: rgba(245, 158, 11, 0.15);
-            border-left: 3px solid #F59E0B;
         }
-        
+
         .user-item.unread .user-item-name {
             font-weight: bold;
             color: #F59E0B;
@@ -230,7 +228,6 @@
             justify-content: center;
             font-weight: bold;
             color: white;
-            position: relative;
         }
 
         .user-item-info {
@@ -267,7 +264,6 @@
             font-weight: bold;
         }
 
-        /* Badge de mensajes no leídos */
         .unread-count {
             background: #EF4444;
             color: white;
@@ -277,11 +273,8 @@
             font-weight: bold;
             min-width: 22px;
             text-align: center;
-            display: inline-block;
-            box-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
         }
 
-        /* Overlay para cerrar el menú */
         .menu-overlay {
             position: fixed;
             top: 0;
@@ -297,7 +290,6 @@
             display: block;
         }
 
-        /* Sidebar desktop */
         .sidebar-desktop {
             width: 280px;
             background: #1E293B;
@@ -415,7 +407,6 @@
             font-size: 12px;
             font-weight: bold;
             color: white;
-            flex-shrink: 0;
         }
 
         .message-bubble {
@@ -557,6 +548,29 @@
             font-weight: bold;
         }
 
+        .mobile-only {
+            display: none;
+        }
+
+        .desktop-only {
+            display: flex;
+        }
+
+        @media (max-width: 900px) {
+            .desktop-only {
+                display: none;
+            }
+            .mobile-only {
+                display: flex;
+            }
+            .right-sidebar {
+                display: none;
+            }
+            .message {
+                max-width: 90%;
+            }
+        }
+
         .auth-modal {
             position: fixed;
             top: 0;
@@ -571,30 +585,6 @@
             justify-content: center;
             padding: 20px;
             background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
-            margin: 0;
-            overflow: auto;
-        }
-
-        .auth-modal::before {
-            content: '';
-            position: absolute;
-            top: -20%;
-            left: -20%;
-            width: 60%;
-            height: 60%;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-
-        .auth-modal::after {
-            content: '';
-            position: absolute;
-            bottom: -20%;
-            right: -20%;
-            width: 60%;
-            height: 60%;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
         }
 
         .auth-card {
@@ -602,12 +592,8 @@
             width: 100%;
             border-radius: 40px;
             overflow: hidden;
-            animation: fadeIn 0.3s ease;
-            position: relative;
-            z-index: 1;
             background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(10px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(245, 158, 11, 0.3);
         }
 
@@ -616,15 +602,6 @@
             padding: 24px;
             text-align: center;
             color: white;
-        }
-
-        .auth-header h2 {
-            font-size: 24px;
-            margin-bottom: 4px;
-        }
-
-        .auth-header p {
-            font-size: 12px;
         }
 
         .auth-body {
@@ -653,11 +630,6 @@
             color: white;
         }
 
-        .input-field input:focus {
-            outline: none;
-            border-color: #F59E0B;
-        }
-
         .btn-auth {
             width: 100%;
             padding: 12px;
@@ -668,7 +640,6 @@
             border: none;
             cursor: pointer;
             margin-top: 12px;
-            font-size: 14px;
         }
 
         .auth-switch {
@@ -688,33 +659,6 @@
             text-align: center;
             padding: 40px;
             color: #F59E0B;
-        }
-
-        /* Responsive */
-        .mobile-only {
-            display: none;
-        }
-
-        .desktop-only {
-            display: flex;
-        }
-
-        @media (max-width: 900px) {
-            .desktop-only {
-                display: none;
-            }
-            .mobile-only {
-                display: flex;
-            }
-            .right-sidebar {
-                display: none;
-            }
-            .message {
-                max-width: 90%;
-            }
-            .chat-header {
-                padding: 12px 16px;
-            }
         }
     </style>
 </head>
@@ -753,7 +697,6 @@
     </div>
 
     <div class="main-grid">
-        <!-- Sidebar Desktop -->
         <div class="sidebar-desktop desktop-only">
             <div class="sidebar-header">
                 <h3>🌟 Miembros Activos</h3>
@@ -764,7 +707,6 @@
             </div>
         </div>
 
-        <!-- Sidebar Móvil (Hamburguesa) -->
         <div class="sidebar-mobile" id="sidebarMobile">
             <div class="sidebar-header">
                 <h3>🌟 Miembros Activos</h3>
@@ -830,175 +772,103 @@
 </div>
 
 <script>
-    // ========== CONFIGURACIÓN DE FIREBASE ==========
+    // ========== FIREBASE CONFIG ==========
     const firebaseConfig = {
         apiKey: "AIzaSyBNWJiMSEqlMPpRbJaq4HUkw8Cm7UIVnV8",
         authDomain: "testersapps.firebaseapp.com",
-        databaseURL: "https://testersapps-default-rtdb.firebaseio.com",
         projectId: "testersapps",
         storageBucket: "testersapps.firebasestorage.app",
         messagingSenderId: "52899437311",
-        appId: "1:52899437311:web:9a7f891e686d97690c4aca",
-        measurementId: "G-G0HC1SFBL1"
+        appId: "1:52899437311:web:9a7f891e686d97690c4aca"
     };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const messaging = firebase.messaging();
 
     let currentUser = null;
     let currentUserData = null;
     let currentChat = 'general';
     let currentPrivateUser = null;
-    
-    // Variables para notificaciones y mensajes no leídos
-    let unreadCounts = {}; // key: userId, value: número de mensajes sin leer de ESE usuario
-    let lastReadTimestamps = {};
-    let notificationPermission = false;
+    let unreadCounts = {};
+    let fcmToken = null;
 
-    // ========== NOTIFICACIONES DEL NAVEGADOR ==========
-    async function requestNotificationPermission() {
-        if ('Notification' in window) {
+    // ========== NOTIFICACIONES PUSH ==========
+    async function initPushNotifications() {
+        try {
+            // Solicitar permiso
             const permission = await Notification.requestPermission();
-            notificationPermission = permission === 'granted';
-            if (notificationPermission) {
-                console.log('✅ Notificaciones activadas');
+            if (permission !== 'granted') {
+                console.log('Permiso de notificaciones denegado');
+                return;
             }
+
+            // Registrar Service Worker
+            if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                console.log('Service Worker registrado');
+                
+                // Obtener token FCM
+                fcmToken = await messaging.getToken({
+                    vapidKey: 'BKfpRGM-eZXqLCgcLN1_HrtbhbXZOfWrzjfjyCKMSWnt_OSuKDFDZDf9e7N3csOhDwfFfyRzy1GJeDW__ZkMC7w',
+                    serviceWorkerRegistration: registration
+                });
+                
+                console.log('Token FCM:', fcmToken);
+                
+                // Guardar token en Firestore
+                if (currentUser && fcmToken) {
+                    await db.collection('fcm_tokens').doc(currentUser.uid).set({
+                        token: fcmToken,
+                        userId: currentUser.uid,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                }
+            }
+            
+            // Escuchar mensajes en primer plano
+            messaging.onMessage((payload) => {
+                console.log('Mensaje en primer plano:', payload);
+                if (payload.notification) {
+                    showLocalNotification(payload.notification.title, payload.notification.body);
+                }
+            });
+            
+        } catch (error) {
+            console.error('Error en notificaciones:', error);
         }
     }
-
-    function showNotification(title, body, userId, userName) {
-        if (!notificationPermission) return;
-        // No notificar si ya estás en el chat con esa persona
-        if (document.hasFocus() && currentChat === 'private' && currentPrivateUser?.id === userId) {
-            return;
-        }
-        // No notificar si es el chat general y ya estás en él
-        if (document.hasFocus() && currentChat === 'general' && !userId) {
-            return;
-        }
+    
+    function showLocalNotification(title, body) {
+        if (Notification.permission !== 'granted') return;
         
         const notification = new Notification(title, {
             body: body,
             icon: 'https://www.gstatic.com/play-logo/play_logo.png',
-            tag: userId || 'general',
-            renotify: true
+            vibrate: [200, 100, 200]
         });
         
         notification.onclick = () => {
             window.focus();
-            if (userId) {
-                startPrivateChat(userId, userName);
-            } else {
-                goToGeneralChat();
-            }
             notification.close();
         };
-        
-        setTimeout(() => notification.close(), 8000);
     }
-
-    // ========== CONTROL DE MENSAJES NO LEÍDOS ==========
-    async function markChatAsRead(userId = null) {
-        const chatId = userId ? [currentUser.uid, userId].sort().join('_') : 'general';
-        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-        
-        await db.collection('read_receipts').doc(`${currentUser.uid}_${chatId}`).set({
-            lastRead: timestamp,
-            userId: currentUser.uid,
-            chatId: chatId
-        }, { merge: true });
-        
-        if (userId) {
-            unreadCounts[userId] = 0;
-            updateUnreadBadges();
-        } else {
-            unreadCounts['general'] = 0;
-            updateTitle();
+    
+    async function sendPushToUser(userId, title, body) {
+        try {
+            const tokenDoc = await db.collection('fcm_tokens').doc(userId).get();
+            if (!tokenDoc.exists || !tokenDoc.data().token) return;
+            
+            // Aquí normalmente llamarías a un Cloud Function
+            // Por ahora solo guardamos en consola
+            console.log(`Enviar push a ${userId}: ${title}`);
+        } catch (error) {
+            console.error('Error enviando push:', error);
         }
     }
 
-    function updateUnreadBadges() {
-        // Actualizar badges en la lista de usuarios (tanto desktop como mobile)
-        document.querySelectorAll('.user-item').forEach(item => {
-            const userId = item.getAttribute('data-user-id');
-            if (userId && unreadCounts[userId] && unreadCounts[userId] > 0) {
-                item.classList.add('unread');
-                let badge = item.querySelector('.unread-count');
-                if (!badge) {
-                    const nameRow = item.querySelector('.name-row');
-                    if (nameRow) {
-                        badge = document.createElement('span');
-                        badge.className = 'unread-count';
-                        nameRow.appendChild(badge);
-                    }
-                }
-                if (badge) badge.textContent = unreadCounts[userId] > 99 ? '99+' : unreadCounts[userId];
-            } else if (userId) {
-                item.classList.remove('unread');
-                const badge = item.querySelector('.unread-count');
-                if (badge) badge.remove();
-            }
-        });
-        updateTitle();
-    }
-
-    function updateTitle() {
-        const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
-        document.title = totalUnread > 0 ? `(${totalUnread}) Testers Community` : 'Testers Community';
-    }
-
-    async function loadLastReadTimestamps() {
-        const receipts = await db.collection('read_receipts')
-            .where('userId', '==', currentUser.uid)
-            .get();
-        
-        receipts.forEach(doc => {
-            const data = doc.data();
-            if (data.lastRead) {
-                lastReadTimestamps[data.chatId] = data.lastRead.toDate().getTime();
-            }
-        });
-    }
-
-    function checkUnreadMessages(messages, chatId, senderId = null, senderName = null) {
-        const lastRead = lastReadTimestamps[chatId] || 0;
-        let unread = 0;
-        let lastMessage = null;
-        
-        messages.forEach(msg => {
-            if (msg.userId !== currentUser.uid) {
-                const msgTime = msg.timestamp?.toDate?.()?.getTime() || Date.now();
-                if (msgTime > lastRead) {
-                    unread++;
-                    if (!lastMessage) lastMessage = msg;
-                }
-            }
-        });
-        
-        if (senderId) {
-            // Este es un chat privado - actualizar contador del usuario específico
-            if (unread > 0) {
-                // Mostrar notificación solo si no estamos en este chat
-                if (currentChat !== 'private' || currentPrivateUser?.id !== senderId) {
-                    showNotification(`🔒 ${senderName || 'Usuario'}`, lastMessage?.text || 'Nuevo mensaje', senderId, senderName);
-                }
-                unreadCounts[senderId] = unread;
-            }
-        } else {
-            // Es el chat general
-            if (unread > 0 && currentChat !== 'general') {
-                showNotification('📢 Chat General', lastMessage?.text || 'Nuevo mensaje en el chat general', null, null);
-            }
-            unreadCounts['general'] = unread;
-        }
-        updateUnreadBadges();
-        
-        return unread;
-    }
-
-    // ========== FUNCIONES PRINCIPALES ==========
-
+    // ========== FUNCIONES DEL CHAT ==========
     function showAuthModal() {
         let isLogin = true;
         const modalDiv = document.createElement('div');
@@ -1101,7 +971,6 @@
         document.getElementById('chatTitle').innerHTML = '💬 Chat General';
         document.getElementById('chatSubtitle').innerHTML = 'Conectado con la comunidad';
         document.getElementById('backToGeneralBtn').style.display = 'none';
-        markChatAsRead(null);
         loadMessages();
         closeMenu();
     }
@@ -1113,7 +982,6 @@
         document.getElementById('chatTitle').innerHTML = `🔒 ${userName}`;
         document.getElementById('chatSubtitle').innerHTML = 'Mensaje privado';
         document.getElementById('backToGeneralBtn').style.display = 'block';
-        markChatAsRead(userId); // Al abrir el chat, marcar como leído
         loadPrivateMessages();
         closeMenu();
     }
@@ -1153,7 +1021,6 @@
             renderUsersList('usersListDesktop', users);
             renderUsersList('usersListMobile', users);
             
-            // Actualizar búsqueda en ambos lados
             ['Desktop', 'Mobile'].forEach(suffix => {
                 const searchInput = document.getElementById(`searchUsers${suffix}`);
                 if (searchInput) {
@@ -1175,10 +1042,20 @@
                 snapshot.forEach(doc => {
                     if (!doc.data().private) {
                         messages.push({ id: doc.id, ...doc.data() });
+                        // Actualizar contador de no leídos del chat general
+                        const msg = doc.data();
+                        if (msg.userId !== currentUser?.uid) {
+                            unreadCounts['general'] = (unreadCounts['general'] || 0) + 1;
+                            updateTitle();
+                        }
                     }
                 });
                 renderMessages(messages);
-                checkUnreadMessages(messages, 'general');
+                // Resetear contador al ver el chat
+                if (currentChat === 'general') {
+                    unreadCounts['general'] = 0;
+                    updateTitle();
+                }
             });
         }
     }
@@ -1189,12 +1066,25 @@
             db.collection('private_messages').where('chatId', '==', chatId).orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
                 const messages = [];
                 snapshot.forEach(doc => {
-                    messages.push({ id: doc.id, ...doc.data() });
+                    const msg = { id: doc.id, ...doc.data() };
+                    messages.push(msg);
+                    // Actualizar contador de no leídos para este usuario
+                    if (msg.userId !== currentUser?.uid && currentPrivateUser?.id === msg.userId) {
+                        unreadCounts[currentPrivateUser.id] = (unreadCounts[currentPrivateUser.id] || 0) + 1;
+                        updateTitle();
+                        // Enviar notificación push
+                        if (document.hidden) {
+                            showLocalNotification('🔒 Nuevo mensaje privado', `${msg.userName}: ${msg.text.substring(0, 50)}`);
+                        }
+                    }
                 });
                 renderMessages(messages);
-                checkUnreadMessages(messages, chatId, currentPrivateUser.id, currentPrivateUser.name);
-                // Actualizar la lista de usuarios para mostrar/ocultar badge
-                loadUsers(); // refrescar badges
+                // Resetear contador al ver el chat
+                if (currentChat === 'private' && currentPrivateUser) {
+                    unreadCounts[currentPrivateUser.id] = 0;
+                    updateTitle();
+                    loadUsers(); // Actualizar badges
+                }
             });
         }
     }
@@ -1246,6 +1136,8 @@
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 time: new Date().toLocaleTimeString()
             });
+            // Notificar al otro usuario
+            sendPushToUser(currentPrivateUser.id, `🔒 Nuevo mensaje de ${userName}`, text);
         }
         
         const userRef = db.collection('users').doc(currentUser.uid);
@@ -1274,6 +1166,11 @@
         });
     }
 
+    function updateTitle() {
+        const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+        document.title = totalUnread > 0 ? `(${totalUnread}) Testers Community` : 'Testers Community';
+    }
+
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -1286,8 +1183,31 @@
     }
 
     async function logout() {
+        // Eliminar token FCM
+        if (fcmToken && currentUser) {
+            await db.collection('fcm_tokens').doc(currentUser.uid).delete();
+        }
         await auth.signOut();
         location.reload();
+    }
+
+    // ========== MENÚ HAMBURGUESA ==========
+    function toggleMenu() {
+        const sidebar = document.getElementById('sidebarMobile');
+        const overlay = document.getElementById('menuOverlay');
+        const toggle = document.getElementById('menuToggle');
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('show');
+        toggle.classList.toggle('active');
+    }
+
+    function closeMenu() {
+        const sidebar = document.getElementById('sidebarMobile');
+        const overlay = document.getElementById('menuOverlay');
+        const toggle = document.getElementById('menuToggle');
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+        toggle.classList.remove('active');
     }
 
     // ========== EVENTOS ==========
@@ -1297,10 +1217,8 @@
             document.getElementById('appContainer').style.display = 'flex';
             await loadUserData();
             await loadUsers();
-            await loadLastReadTimestamps();
-            await requestNotificationPermission();
-            
             loadMessages();
+            await initPushNotifications();
             
             document.getElementById('sendBtn').onclick = sendMessage;
             document.getElementById('messageInput').onkeypress = (e) => {
@@ -1314,7 +1232,6 @@
             document.getElementById('menuToggle').onclick = toggleMenu;
             document.getElementById('menuOverlay').onclick = closeMenu;
             
-            // Búsqueda en desktop
             document.getElementById('searchUsersDesktop').oninput = (e) => {
                 const term = e.target.value.toLowerCase();
                 document.querySelectorAll('#usersListDesktop .user-item').forEach(item => {
@@ -1323,7 +1240,6 @@
                 });
             };
             
-            // Búsqueda en móvil
             document.getElementById('searchUsersMobile').oninput = (e) => {
                 const term = e.target.value.toLowerCase();
                 document.querySelectorAll('#usersListMobile .user-item').forEach(item => {
@@ -1336,26 +1252,6 @@
             showAuthModal();
         }
     });
-
-    function toggleMenu() {
-        const sidebar = document.getElementById('sidebarMobile');
-        const overlay = document.getElementById('menuOverlay');
-        const toggle = document.getElementById('menuToggle');
-        
-        sidebar.classList.toggle('open');
-        overlay.classList.toggle('show');
-        toggle.classList.toggle('active');
-    }
-
-    function closeMenu() {
-        const sidebar = document.getElementById('sidebarMobile');
-        const overlay = document.getElementById('menuOverlay');
-        const toggle = document.getElementById('menuToggle');
-        
-        sidebar.classList.remove('open');
-        overlay.classList.remove('show');
-        toggle.classList.remove('active');
-    }
 
     window.startPrivateChat = startPrivateChat;
     window.goToGeneralChat = goToGeneralChat;
