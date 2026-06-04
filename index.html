@@ -235,6 +235,16 @@
 
         .user-item-info {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .name-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
         }
 
         .user-item-name {
@@ -267,7 +277,6 @@
             font-weight: bold;
             min-width: 22px;
             text-align: center;
-            margin-left: 8px;
             display: inline-block;
             box-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
         }
@@ -843,7 +852,7 @@
     let currentPrivateUser = null;
     
     // Variables para notificaciones y mensajes no leídos
-    let unreadCounts = {};
+    let unreadCounts = {}; // key: userId, value: número de mensajes sin leer de ESE usuario
     let lastReadTimestamps = {};
     let notificationPermission = false;
 
@@ -860,8 +869,13 @@
 
     function showNotification(title, body, userId, userName) {
         if (!notificationPermission) return;
+        // No notificar si ya estás en el chat con esa persona
         if (document.hasFocus() && currentChat === 'private' && currentPrivateUser?.id === userId) {
-            return; // No notificar si ya está en el chat
+            return;
+        }
+        // No notificar si es el chat general y ya estás en él
+        if (document.hasFocus() && currentChat === 'general' && !userId) {
+            return;
         }
         
         const notification = new Notification(title, {
@@ -905,18 +919,21 @@
     }
 
     function updateUnreadBadges() {
+        // Actualizar badges en la lista de usuarios (tanto desktop como mobile)
         document.querySelectorAll('.user-item').forEach(item => {
             const userId = item.getAttribute('data-user-id');
-            if (userId && unreadCounts[userId] > 0) {
+            if (userId && unreadCounts[userId] && unreadCounts[userId] > 0) {
                 item.classList.add('unread');
                 let badge = item.querySelector('.unread-count');
                 if (!badge) {
-                    const infoDiv = item.querySelector('.user-item-info');
-                    badge = document.createElement('span');
-                    badge.className = 'unread-count';
-                    infoDiv.appendChild(badge);
+                    const nameRow = item.querySelector('.name-row');
+                    if (nameRow) {
+                        badge = document.createElement('span');
+                        badge.className = 'unread-count';
+                        nameRow.appendChild(badge);
+                    }
                 }
-                badge.textContent = unreadCounts[userId] > 99 ? '99+' : unreadCounts[userId];
+                if (badge) badge.textContent = unreadCounts[userId] > 99 ? '99+' : unreadCounts[userId];
             } else if (userId) {
                 item.classList.remove('unread');
                 const badge = item.querySelector('.unread-count');
@@ -960,11 +977,16 @@
         });
         
         if (senderId) {
-            if (unread > 0 && currentChat !== 'private' && currentPrivateUser?.id !== senderId) {
-                showNotification(`🔒 ${senderName || 'Usuario'}`, lastMessage?.text || 'Nuevo mensaje', senderId, senderName);
+            // Este es un chat privado - actualizar contador del usuario específico
+            if (unread > 0) {
+                // Mostrar notificación solo si no estamos en este chat
+                if (currentChat !== 'private' || currentPrivateUser?.id !== senderId) {
+                    showNotification(`🔒 ${senderName || 'Usuario'}`, lastMessage?.text || 'Nuevo mensaje', senderId, senderName);
+                }
+                unreadCounts[senderId] = unread;
             }
-            unreadCounts[senderId] = unread;
         } else {
+            // Es el chat general
             if (unread > 0 && currentChat !== 'general') {
                 showNotification('📢 Chat General', lastMessage?.text || 'Nuevo mensaje en el chat general', null, null);
             }
@@ -1091,45 +1113,33 @@
         document.getElementById('chatTitle').innerHTML = `🔒 ${userName}`;
         document.getElementById('chatSubtitle').innerHTML = 'Mensaje privado';
         document.getElementById('backToGeneralBtn').style.display = 'block';
-        markChatAsRead(userId);
+        markChatAsRead(userId); // Al abrir el chat, marcar como leído
         loadPrivateMessages();
         closeMenu();
     }
 
-    function renderUsersList(containerId, users, activeUserId) {
+    function renderUsersList(containerId, users) {
         const container = document.getElementById(containerId);
         if (users.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:20px; color:#94A3B8;">🌟 Invita más testers</div>';
             return;
         }
-        container.innerHTML = users.map(user => `
-            <div class="user-item ${currentPrivateUser?.id === user.id ? 'active' : ''}" data-user-id="${user.id}" onclick="startPrivateChat('${user.id}', '${user.name}')">
-                <div class="user-item-avatar">${user.name ? user.name.charAt(0).toUpperCase() : '?'}</div>
-                <div class="user-item-info">
-                    <div class="user-item-name">${escapeHtml(user.name)}</div>
-                    <div class="user-item-status">🟢 Activo</div>
+        container.innerHTML = users.map(user => {
+            const unread = unreadCounts[user.id] || 0;
+            return `
+                <div class="user-item ${currentPrivateUser?.id === user.id ? 'active' : ''} ${unread > 0 ? 'unread' : ''}" data-user-id="${user.id}" onclick="startPrivateChat('${user.id}', '${user.name}')">
+                    <div class="user-item-avatar">${user.name ? user.name.charAt(0).toUpperCase() : '?'}</div>
+                    <div class="user-item-info">
+                        <div class="name-row">
+                            <div class="user-item-name">${escapeHtml(user.name)}</div>
+                            ${unread > 0 ? `<span class="unread-count">${unread > 99 ? '99+' : unread}</span>` : ''}
+                        </div>
+                        <div class="user-item-status">🟢 Activo</div>
+                    </div>
+                    <div class="user-item-badge">${user.points || 0}</div>
                 </div>
-                <div class="user-item-badge">${user.points || 0}</div>
-            </div>
-        `).join('');
-        
-        // Restaurar badges después de renderizar
-        Object.keys(unreadCounts).forEach(userId => {
-            if (unreadCounts[userId] > 0) {
-                const items = document.querySelectorAll(`${containerId} .user-item[data-user-id="${userId}"]`);
-                items.forEach(item => {
-                    item.classList.add('unread');
-                    let badge = item.querySelector('.unread-count');
-                    if (!badge) {
-                        const infoDiv = item.querySelector('.user-item-info');
-                        badge = document.createElement('span');
-                        badge.className = 'unread-count';
-                        infoDiv.appendChild(badge);
-                    }
-                    badge.textContent = unreadCounts[userId] > 99 ? '99+' : unreadCounts[userId];
-                });
-            }
-        });
+            `;
+        }).join('');
     }
 
     async function loadUsers() {
@@ -1183,6 +1193,8 @@
                 });
                 renderMessages(messages);
                 checkUnreadMessages(messages, chatId, currentPrivateUser.id, currentPrivateUser.name);
+                // Actualizar la lista de usuarios para mostrar/ocultar badge
+                loadUsers(); // refrescar badges
             });
         }
     }
@@ -1241,8 +1253,6 @@
         await userRef.update({ points: (userData.points || 0) + 2 });
         
         input.value = '';
-        if (currentChat === 'general') loadMessages();
-        else loadPrivateMessages();
     }
 
     async function loadUserData() {
